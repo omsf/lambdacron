@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloud-cron"
+version = "0.1.0"
+description = "Cloud Cron runtime helpers"
+requires-python = ">=3.12"
+dependencies = [
+  "boto3",
+  "jinja2",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
