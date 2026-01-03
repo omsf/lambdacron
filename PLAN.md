@@ -55,13 +55,14 @@ To-do:
 - [x] Add `src/cloud_cron/notifications/` for shared handler logic (SES/Twilio/etc.) that can be imported by notification runtimes.
 - [x] Update `src/cloud_cron/HOWTO-custom-lambda.md` to show the current recommended pattern and env var expectations.
 - [x] Add pytest cases with moto/mocks to cover SNS publish and mismatch errors.
-- [ ] Document a minimal example task module that can be used in `examples/basic` or in a client repo.
+- [x] Document a minimal example task module that can be used in `examples/basic` or in a client repo.
 
 ## Phase 4: Build notification modules
 
-### Phase 4.1: Shared notification container and queueing infra
-- [ ] Create a thin runtime wrapper in `modules/notification-runtime/` that packages a Lambda image and selects handlers via env var/routing key; handler implementations live in `src/cloud_cron/notifications/` (Phase 3) and are imported into the runtime. Reuse shared helpers from `src/cloud_cron/` for logging/dispatch conventions.
-- [ ] Terraform: shared container build/publish for notifications; SQS FIFO queue for deduplication between SNS topic and Lambdas; SNS subscription to FIFO SQS with content-based dedup; SQS trigger to Lambda; IAM for SQS poll, logs, SES send, Secrets/SSM read, Twilio access.
+### Phase 4.1: Notification containers and queueing infra
+- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; no dynamic handler routing.
+- [ ] Add a minimal "print" notifier handler that renders the template and logs/prints it for easy testing.
+- [ ] Terraform: per-channel container build/publish; SQS FIFO queue for deduplication between SNS topic and Lambdas; SNS subscription to FIFO SQS with content-based dedup; SQS trigger to Lambda; IAM for SQS poll, logs, SES send, Secrets/SSM read, Twilio access.
 - [ ] Inputs per module: `sns_topic_arn`, `fifo_queue_name`/settings, handler selector/env vars; shared tags/log retention.
 - [ ] Verify: `terraform validate`; example `plan`; container build succeeds locally; pytest skeleton runs.
 - [ ] Example touchpoint: extend `examples/basic` to include the notification container + FIFO SQS subscription to the sample SNS topic; run `terraform validate/plan` to confirm SNS->SQS->Lambda path.
@@ -69,7 +70,7 @@ To-do:
 ### Phase 4.2: Email via SES handler (`modules/email-notification`)
 - [ ] Define handler contract: expect message payload with subject/template vars; support optional config set/reply-to; log delivery status.
 - [ ] Python code: SES client wrapper; load template (managed via Terraform) and render with variables; handle throttling/retries and DLQ-safe errors.
-- [ ] Terraform: SES template creation; Lambda configuration/env (sender, recipients, template name, config set); permissions for SES send + logs; wire to shared container image and handler selection.
+- [ ] Terraform: SES template creation; Lambda configuration/env (sender, recipients, template name, config set); permissions for SES send + logs; wire to the SES-specific container image.
 - [ ] Tests: pytest with sample SNS/SQS events; stub/moto SES; validate error handling and idempotency.
 - [ ] Verify: `terraform validate`; handler unit tests green; document smoke test (publish SNS message to topic -> email delivered/SES sandbox note).
 - [ ] Example touchpoint: wire the email module into `examples/basic` with sample SES template/resources and document the SNS publish -> email expectation.
@@ -77,7 +78,7 @@ To-do:
 ### Phase 4.3: SMS via Twilio handler (`modules/sms-notification`)
 - [ ] Define handler contract: expect message payload with body/recipients; support per-message override of to-numbers; log Twilio SID/error.
 - [ ] Python code: Twilio REST client wrapper; read SID/auth token from SSM/Secrets; handle rate limits/retries; sanitize phone numbers; DLQ-safe errors.
-- [ ] Terraform: Lambda configuration/env (from-number, default recipients, secret ARNs), IAM for Secrets Manager/SSM read + logs; wire to shared container image and handler selection.
+- [ ] Terraform: Lambda configuration/env (from-number, default recipients, secret ARNs), IAM for Secrets Manager/SSM read + logs; wire to the Twilio-specific container image.
 - [ ] Tests: pytest with mocked Twilio client; cover success/failure paths and secret fetch.
 - [ ] Verify: `terraform validate`; handler unit tests green; document smoke test (publish SNS message to topic -> SMS sent).
 - [ ] Example touchpoint: add the SMS module to `examples/basic` (guard secrets/recipients via variables) and include a smoke path in the README.
