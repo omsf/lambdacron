@@ -1,4 +1,4 @@
-[project]
+[workspace]
 authors = ["David W.H. Swenson <dwhs@hyperblazer.net>"]
 channels = ["conda-forge"]
 description = "Add a short description here"
