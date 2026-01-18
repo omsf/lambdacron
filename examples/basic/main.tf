@@ -70,7 +70,7 @@ module "sns_topics" {
   source = "../../modules/sns-topics"
 
   topic_names = {
-    example = "example-topic"
+    example = "example-topic.fifo"
   }
 
   tags = local.common_tags
