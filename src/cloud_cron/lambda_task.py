@@ -149,6 +149,23 @@ def load_sns_topics(env_var: str = "SNS_TOPICS") -> dict[str, str]:
     return raw
 
 
+def load_sns_message_group_id(env_var: str = "SNS_MESSAGE_GROUP_ID") -> str:
+    """
+    Load the SNS FIFO message group ID from the environment.
+
+    Parameters
+    ----------
+    env_var : str, optional
+        Environment variable name containing the group ID.
+
+    Returns
+    -------
+    str
+        Message group ID for FIFO SNS topics.
+    """
+    return os.environ.get(env_var, "cloudcron")
+
+
 def validate_sns_result(
     result: Mapping[str, Any], sns_topics: Mapping[str, str]
 ) -> None:
@@ -204,6 +221,7 @@ def dispatch_sns_messages(
             TopicArn=topic_arn,
             Message=json.dumps(message),
             Subject=f"Notification for {topic_name}",
+            MessageGroupId=load_sns_message_group_id(),
         )
         logger.info(
             "sns_publish",
