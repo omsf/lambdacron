@@ -8,7 +8,7 @@ This is intended to be a framework that can be used by client code to define the
 
 1. **Scheduled Lambda Functions**: The goal here is that the client can provide their own lambda function (as a container image) and, from that, we will run it on a schedule defined by the client. The lambda function needs to know 1 or more SNS topics to which it will publish messages when it runs; different "types" of messages can go to different SNS topics, which will then be subscribed to by different notification channels. This will include the lambda execution role and the scheduled events.
 2. **SNS Topics**: These will be manually created by the client code, but ARNs might be needed to give the lambda permissions to publish.
-3. **Notification Channels**: We will provide modules for different notification channels (e.g., email via SES, SMS via Twilio, etc.). Each notification module owns the SNS->SQS->Lambda wiring: it provisions the FIFO SQS queue/subscription used for deduplication and triggers its handler; the user should not create that queue manually. Each channel ships its own container image (build or republish) that renders a Jinja2 template and delivers via its notifier.
+3. **Notification Channels**: We will provide modules for different notification channels (e.g., email via SES, SMS via Twilio, etc.). Each notification module owns the SNS->SQS->Lambda wiring: it provisions the FIFO SQS queue/subscription used for deduplication and triggers its handler; the user should not create that queue manually. Each channel ships its own container image (build or republish) that renders Jinja2 templates and delivers via its notifier. For email, the handler renders subject, text, and HTML templates in Lambda using payload-provided template variables (no per-message overrides).
 4. **Lambda Image Utilities**: In addition to republishing an existing Lambda container, we will provide a module to build an image from a local directory containing a Dockerfile and publish it to ECR for use by the scheduled-lambda module.
 5. **Python Runtime Library**: Provide reusable Python code in `src/cloud_cron/` that makes authoring custom scheduled lambdas easy (task base class, SNS dispatch helpers, and ergonomic handler wiring). This includes a template provider abstraction so notification handlers can source templates from env vars, URLs, or S3.
 
@@ -36,7 +36,9 @@ module "my_scheduled_lambda" {
 module "my_email_notification" {
   source = "./modules/email-notification"
   sns_topic_arn = aws_sns_topic.example_topic.arn
-  template_file = "path/to/email/template.html"
+  subject_template_file = "path/to/email/subject.txt"
+  text_template_file = "path/to/email/body.txt"
+  html_template_file = "path/to/email/body.html"
   email_sender = "me@example.com"
   email_recipients = [
     "alice@example.com",

@@ -69,9 +69,9 @@ To-do:
 - [x] Example touchpoint: extend `examples/basic` to include the print notifier + FIFO SNS/SQS wiring to the sample SNS topic.
 
 ### Phase 4.2: Email via SES handler (`modules/email-notification`)
-- [ ] Define handler contract: expect message payload with subject/template vars; support optional config set/reply-to; log delivery status.
-- [ ] Python code: SES client wrapper; load template (managed via Terraform) and render with variables; handle throttling/retries and DLQ-safe errors.
-- [ ] Terraform: SES template creation; Lambda configuration/env (sender, recipients, template name, config set); permissions for SES send + logs; wire to the SES-specific container image.
+- [ ] Define handler contract: payload supplies template variables only; Lambda renders required subject/text/html templates; no per-message overrides; log delivery status.
+- [ ] Python code: SES client wrapper; render subject/text/html templates locally with Jinja2; handle throttling/retries and DLQ-safe errors.
+- [ ] Terraform: Lambda configuration/env for subject/text/html templates plus sender/recipients/config set; permissions for SES send + logs; wire to the SES-specific container image.
 - [ ] Tests: pytest with sample SNS/SQS events; stub/moto SES; validate error handling and idempotency.
 - [ ] Verify: `terraform validate`; handler unit tests green; document smoke test (publish SNS message to topic -> email delivered/SES sandbox note).
 - [ ] Example touchpoint: wire the email module into `examples/basic` with sample SES template/resources and document the SNS publish -> email expectation.
