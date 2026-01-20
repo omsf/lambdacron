@@ -16,48 +16,6 @@ variable "print_repository_name" {
   default     = "cloud-cron-print"
 }
 
-variable "print_enable_republish" {
-  description = "Set to true to republish the print notifier image instead of building locally."
-  type        = bool
-  default     = false
-}
-
-variable "print_source_lambda_repo" {
-  description = "Source ECR repository for republishing the print notifier image."
-  type        = string
-  default     = null
-}
-
-variable "print_source_lambda_tag" {
-  description = "Tag in the source repository for republishing the print notifier image."
-  type        = string
-  default     = "latest"
-}
-
-variable "print_source_registry_id" {
-  description = "Optional registry ID for the source print notifier repository."
-  type        = string
-  default     = null
-}
-
-variable "print_destination_repository_name" {
-  description = "Optional destination repository name for republishing the print notifier image."
-  type        = string
-  default     = null
-}
-
-variable "print_enable_kms_encryption" {
-  description = "Set to true to use KMS encryption for the print notifier repository."
-  type        = bool
-  default     = false
-}
-
-variable "print_kms_key_arn" {
-  description = "KMS key ARN for republishing the print notifier image."
-  type        = string
-  default     = null
-}
-
 variable "image_tag" {
   description = "Tag to use for the locally built image."
   type        = string

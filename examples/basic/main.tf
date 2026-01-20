@@ -27,7 +27,6 @@ module "lambda_image_build" {
 }
 
 module "print_lambda_image_build" {
-  count  = var.print_enable_republish ? 0 : 1
   source = "../../modules/lambda-image-build"
 
   source_dir      = "${path.module}/../.."
@@ -41,19 +40,6 @@ module "print_lambda_image_build" {
   platform        = var.platform
   build_args      = var.build_args
   tags            = local.common_tags
-}
-
-module "print_lambda_container_republish" {
-  count  = var.print_enable_republish ? 1 : 0
-  source = "../../modules/lambda-container"
-
-  source_lambda_repo          = var.print_source_lambda_repo
-  source_lambda_tag           = var.print_source_lambda_tag
-  source_registry_id          = var.print_source_registry_id
-  destination_repository_name = var.print_destination_repository_name
-  enable_kms_encryption       = var.print_enable_kms_encryption
-  kms_key_arn                 = var.print_kms_key_arn
-  tags                        = local.common_tags
 }
 
 module "lambda_container_republish" {
@@ -71,7 +57,7 @@ module "lambda_container_republish" {
 
 locals {
   active_lambda_image_uri = var.enable_republish ? module.lambda_container_republish[0].lambda_image_uri_with_digest : module.lambda_image_build.image_uri_with_digest
-  active_print_image_uri  = var.print_enable_republish ? module.print_lambda_container_republish[0].lambda_image_uri_with_digest : module.print_lambda_image_build[0].image_uri_with_digest
+  active_print_image_uri  = module.print_lambda_image_build.image_uri_with_digest
 }
 
 module "sns_topics" {
