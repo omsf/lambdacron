@@ -33,7 +33,6 @@ version = "0.1.0"
 [tool.pixi.tasks]
 fmt = "tofu fmt -recursive"
 pre-commit = "pre-commit run --all-files"
-pytest-cov = "pytest -v --cov --cov-report=xml"
 validate = "tofu validate"
 
 [tool.pixi.dependencies]
@@ -42,6 +41,9 @@ python = "*"
 
 [tool.pixi.feature.dev.pypi-dependencies]
 cloud-cron = { path = ".", editable = true, extras = ["dev"] }
+
+[tool.pixi.feature.dev.tasks]
+pytest-cov = "pytest -v --cov --cov-report=xml"
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
