@@ -1,0 +1,29 @@
+name: Python Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          cache: true
+
+      - name: Run pytest with coverage
+        run: pixi run -e dev pytest-cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -6,12 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "cloud-cron"
 version = "0.1.0"
 description = "Cloud Cron runtime helpers"
+authors = [{name = "David W.H. Swenson", email = "david.swenson@omsf.io"}]
 requires-python = ">=3.12"
 dependencies = [
   "boto3",
   "jinja2",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "moto", "pre-commit"]
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -20,3 +23,28 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 88
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+name = "cloud-cron"
+platforms = ["osx-64", "osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[tool.pixi.tasks]
+fmt = "tofu fmt -recursive"
+pre-commit = "pre-commit run --all-files"
+validate = "tofu validate"
+
+[tool.pixi.dependencies]
+opentofu = "*"
+python = "*"
+
+[tool.pixi.feature.dev.pypi-dependencies]
+cloud-cron = { path = ".", editable = true, extras = ["dev"] }
+
+[tool.pixi.feature.dev.tasks]
+pytest-cov = "pytest -v --cov --cov-report=xml"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }

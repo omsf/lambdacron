@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Chicago"
+    commit-message:
+      prefix: "actions"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+  - package-ecosystem: "terraform"
+    directories:
+      - "/"
+      - "/examples/basic"
+      - "/modules/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Chicago"
+    commit-message:
+      prefix: "terraform"
+      include: "scope"
+    groups:
+      opentofu:
+        patterns:
+          - "*"
