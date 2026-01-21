@@ -3,6 +3,8 @@ locals {
   lambda_name = coalesce(var.lambda_name, "cloudcron-print-${terraform.workspace}")
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "lambda_role" {
   name = "${local.lambda_name}-role"
   assume_role_policy = jsonencode({
@@ -43,7 +45,7 @@ resource "aws_iam_policy" "lambda_logs_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents",
         ]
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:*"
       },
     ]
   })
