@@ -28,6 +28,10 @@ updates:
     commit-message:
       prefix: "terraform"
       include: "scope"
+    ignore:
+      - dependency-name: "hashicorp/aws"
+        versions:
+          - ">= 5.0.0"
     groups:
       opentofu:
         patterns:
