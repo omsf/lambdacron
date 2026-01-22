@@ -11,6 +11,7 @@ module "notification_plumbing" {
   sns_topic_arn       = aws_sns_topic.example.arn
   lambda_function_arn = aws_lambda_function.print.arn
   fifo_queue_name     = "example-notifications.fifo"
+  result_types        = ["example"]
 }
 ```
 
@@ -18,6 +19,7 @@ module "notification_plumbing" {
 
 - `sns_topic_arn` (string): SNS topic ARN that feeds the notification queue.
 - `lambda_function_arn` (string): ARN of the Lambda function that processes SQS messages.
+- `result_types` (list(string)): Result types to subscribe to. Empty means all.
 - `fifo_queue_name` (string): Name of the FIFO SQS queue (must end with `.fifo`).
 - `content_based_deduplication` (bool): Enable content-based deduplication. Default `true`.
 - `visibility_timeout_seconds` (number): Visibility timeout for the queue. Default `30`.

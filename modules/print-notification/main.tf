@@ -27,6 +27,7 @@ module "plumbing" {
 
   sns_topic_arn       = var.sns_topic_arn
   lambda_function_arn = aws_lambda_function.print.arn
+  result_types        = var.result_types
   fifo_queue_name     = var.fifo_queue_name
   batch_size          = var.batch_size
   enabled             = var.enabled

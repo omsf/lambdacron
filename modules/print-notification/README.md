@@ -9,6 +9,7 @@ module "print_notification" {
   source = "./modules/print-notification"
 
   sns_topic_arn   = aws_sns_topic.example.arn
+  result_types    = ["example"]
   fifo_queue_name = "example-print.fifo"
   lambda_image_uri = module.print_image.image_uri_with_digest
 
@@ -19,6 +20,7 @@ module "print_notification" {
 ## Inputs
 
 - `sns_topic_arn` (string): SNS topic ARN that feeds the notification queue.
+- `result_types` (list(string)): Result types to subscribe to. Empty means all.
 - `fifo_queue_name` (string): Name of the FIFO SQS queue (must end with `.fifo`).
 - `lambda_image_uri` (string): URI of the Lambda container image.
 - `lambda_name` (string): Optional name for the Lambda function.

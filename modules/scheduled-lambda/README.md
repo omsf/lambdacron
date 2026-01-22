@@ -1,12 +1,12 @@
 # Scheduled Lambda Module
 
-Provision a container-based Lambda function that runs on an EventBridge schedule and publishes to SNS topics.
+Provision a container-based Lambda function that runs on an EventBridge schedule and publishes to a shared SNS topic.
 
 ## Usage
 
 ```hcl
-resource "aws_sns_topic" "example_topic" {
-  name = "example-topic"
+resource "aws_sns_topic" "results" {
+  name = "cloud-cron-results"
 }
 
 module "scheduled_lambda" {
@@ -14,9 +14,7 @@ module "scheduled_lambda" {
 
   lambda_image_uri     = "123456789012.dkr.ecr.us-west-2.amazonaws.com/my-lambda:latest"
   schedule_expression  = "rate(5 minutes)"
-  sns_topic_arns = {
-    task = aws_sns_topic.example_topic.arn
-  }
+  sns_topic_arn         = aws_sns_topic.results.arn
 
   lambda_env = {
     LOG_LEVEL = "info"
@@ -28,7 +26,7 @@ module "scheduled_lambda" {
 
 - `lambda_image_uri` (string): URI of the Lambda container image.
 - `schedule_expression` (string): EventBridge schedule expression.
-- `sns_topic_arns` (map(string)): Logical topic keys to SNS topic ARN mapping.
+- `sns_topic_arn` (string): SNS topic ARN for publishing results.
 - `lambda_env` (map(string)): Additional environment variables for the Lambda.
 - `timeout` (number): Lambda timeout in seconds.
 - `memory_size` (number): Lambda memory size in MB.

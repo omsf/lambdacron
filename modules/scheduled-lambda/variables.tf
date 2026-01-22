@@ -8,13 +8,9 @@ variable "schedule_expression" {
   type        = string
 }
 
-variable "sns_topic_arns" {
-  description = "Map of logical topic keys to SNS topic ARNs."
-  type        = map(string)
-  validation {
-    condition     = length(var.sns_topic_arns) > 0
-    error_message = "At least one SNS topic ARN must be provided."
-  }
+variable "sns_topic_arn" {
+  description = "SNS topic ARN to publish scheduled results."
+  type        = string
 }
 
 variable "lambda_env" {

@@ -12,6 +12,12 @@ variable "lambda_function_arn" {
   type        = string
 }
 
+variable "result_types" {
+  description = "Result types to subscribe to; empty means all."
+  type        = list(string)
+  default     = []
+}
+
 variable "fifo_queue_name" {
   description = "Name of the FIFO SQS queue (must end with .fifo)."
   type        = string

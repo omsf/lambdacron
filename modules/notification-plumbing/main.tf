@@ -1,5 +1,8 @@
 locals {
   tags = merge({ managed_by = "cloudcron" }, var.tags)
+  filter_policy = length(var.result_types) > 0 ? jsonencode({
+    result_type = var.result_types
+  }) : null
 }
 
 resource "aws_sqs_queue" "dlq" {
@@ -57,6 +60,8 @@ resource "aws_sns_topic_subscription" "queue" {
   endpoint  = aws_sqs_queue.queue.arn
 
   raw_message_delivery = true
+  filter_policy        = local.filter_policy
+  filter_policy_scope  = length(var.result_types) > 0 ? "MessageAttributes" : null
 }
 
 resource "aws_lambda_event_source_mapping" "sqs" {
