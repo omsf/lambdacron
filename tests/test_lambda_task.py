@@ -9,6 +9,7 @@ from cloud_cron.lambda_task import (
     CronLambdaTask,
     dispatch_sns_messages,
     extract_context_metadata,
+    load_sns_message_group_id,
     load_sns_topics,
     validate_sns_result,
 )
@@ -35,6 +36,16 @@ def test_load_sns_topics_invalid_mapping(monkeypatch):
     monkeypatch.setenv("SNS_TOPICS", json.dumps({"ok": 123}))
     with pytest.raises(ValueError, match="SNS_TOPICS must be a JSON object"):
         load_sns_topics()
+
+
+def test_load_sns_message_group_id_default(monkeypatch):
+    monkeypatch.delenv("SNS_MESSAGE_GROUP_ID", raising=False)
+    assert load_sns_message_group_id() == "cloudcron"
+
+
+def test_load_sns_message_group_id_override(monkeypatch):
+    monkeypatch.setenv("SNS_MESSAGE_GROUP_ID", "custom-group")
+    assert load_sns_message_group_id() == "custom-group"
 
 
 def test_validate_sns_result_allows_subset():
@@ -68,11 +79,13 @@ def test_dispatch_sns_messages_publishes(caplog):
         TopicArn="arn:one",
         Message=json.dumps({"ok": True}),
         Subject="Notification for success",
+        MessageGroupId="cloudcron",
     )
     sns_client.publish.assert_any_call(
         TopicArn="arn:two",
         Message=json.dumps({"ok": False}),
         Subject="Notification for failure",
+        MessageGroupId="cloudcron",
     )
 
 
@@ -98,6 +111,7 @@ def test_cron_lambda_task_invokes_dispatch(caplog):
         TopicArn="arn:one",
         Message=json.dumps({"ok": True}),
         Subject="Notification for success",
+        MessageGroupId="cloudcron",
     )
 
 

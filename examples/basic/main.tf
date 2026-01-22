@@ -26,6 +26,22 @@ module "lambda_image_build" {
   tags            = local.common_tags
 }
 
+module "print_lambda_image_build" {
+  source = "../../modules/lambda-image-build"
+
+  source_dir      = "${path.module}/../.."
+  dockerfile_path = "${path.module}/print-notifier/Dockerfile"
+  build_context_paths = [
+    "${path.module}/print-notifier",
+    "${path.module}/../../src/cloud_cron",
+  ]
+  repository_name = var.print_repository_name
+  image_tag       = var.image_tag
+  platform        = var.platform
+  build_args      = var.build_args
+  tags            = local.common_tags
+}
+
 module "lambda_container_republish" {
   count  = var.enable_republish ? 1 : 0
   source = "../../modules/lambda-container"
@@ -41,13 +57,14 @@ module "lambda_container_republish" {
 
 locals {
   active_lambda_image_uri = var.enable_republish ? module.lambda_container_republish[0].lambda_image_uri_with_digest : module.lambda_image_build.image_uri_with_digest
+  active_print_image_uri  = module.print_lambda_image_build.image_uri_with_digest
 }
 
 module "sns_topics" {
   source = "../../modules/sns-topics"
 
   topic_names = {
-    example = "example-topic"
+    example = "example-topic.fifo"
   }
 
   tags = local.common_tags
@@ -60,6 +77,17 @@ module "scheduled_lambda" {
   schedule_expression = var.schedule_expression
   lambda_name         = var.lambda_name
   sns_topic_arns      = module.sns_topics.topic_arns
+
+  tags = local.common_tags
+}
+
+module "print_notification" {
+  source = "../../modules/print-notification"
+
+  sns_topic_arn    = module.sns_topics.topic_arns.example
+  fifo_queue_name  = "example-print.fifo"
+  lambda_image_uri = local.active_print_image_uri
+  template_file    = "${path.module}/templates/print.txt"
 
   tags = local.common_tags
 }

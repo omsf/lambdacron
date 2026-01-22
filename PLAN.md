@@ -60,12 +60,13 @@ To-do:
 ## Phase 4: Build notification modules
 
 ### Phase 4.1: Notification containers and queueing infra
-- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; no dynamic handler routing.
-- [ ] Add a minimal "print" notifier handler that renders the template and logs/prints it for easy testing.
-- [ ] Terraform: per-channel container build/publish; SQS FIFO queue for deduplication between SNS topic and Lambdas; SNS subscription to FIFO SQS with content-based dedup; SQS trigger to Lambda; IAM for SQS poll, logs, SES send, Secrets/SSM read, Twilio access.
+- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; allow build or republish via `lambda-image-build` or `lambda-container`.
+- [x] Add a minimal "print" notifier handler that renders the template and logs/prints it for easy testing.
+- [x] Terraform: reusable notification plumbing module (SNS FIFO topic -> SQS FIFO queue -> Lambda event source mapping) with SQS access policy output.
+- [ ] Terraform: per-channel container build/publish; channel modules use the plumbing module and add channel-specific IAM and config.
 - [ ] Inputs per module: `sns_topic_arn`, `fifo_queue_name`/settings, handler selector/env vars; shared tags/log retention.
-- [ ] Verify: `terraform validate`; example `plan`; container build succeeds locally; pytest skeleton runs.
-- [ ] Example touchpoint: extend `examples/basic` to include the notification container + FIFO SQS subscription to the sample SNS topic; run `terraform validate/plan` to confirm SNS->SQS->Lambda path.
+- [x] Verify: `terraform validate`; example `plan`; container build succeeds locally; pytest skeleton runs.
+- [x] Example touchpoint: extend `examples/basic` to include the print notifier + FIFO SNS/SQS wiring to the sample SNS topic.
 
 ### Phase 4.2: Email via SES handler (`modules/email-notification`)
 - [ ] Define handler contract: expect message payload with subject/template vars; support optional config set/reply-to; log delivery status.

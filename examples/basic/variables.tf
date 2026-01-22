@@ -10,6 +10,12 @@ variable "repository_name" {
   default     = null
 }
 
+variable "print_repository_name" {
+  description = "Optional repository name for the print notifier image."
+  type        = string
+  default     = "cloud-cron-print"
+}
+
 variable "image_tag" {
   description = "Tag to use for the locally built image."
   type        = string
