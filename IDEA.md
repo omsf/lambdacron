@@ -55,7 +55,7 @@ Usage would look something like this:
 
 ```hcl
 module my_lambda_container {
-  source = "./modules/lambda-container"
+  source = "./modules/lambda-image-republish"
   source_lambda_repo = "123456789012.dkr.ecr.us-west-2.amazonaws.com/my-lambda"
   source_lambda_tag = "latest"
 }

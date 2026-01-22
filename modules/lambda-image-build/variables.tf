@@ -21,12 +21,6 @@ variable "image_tag" {
   default     = "latest"
 }
 
-variable "build_args" {
-  description = "Build arguments to pass to docker buildx."
-  type        = map(string)
-  default     = {}
-}
-
 variable "build_context_paths" {
   description = "Optional list of paths to hash for detecting build context changes."
   type        = list(string)

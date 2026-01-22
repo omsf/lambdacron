@@ -4,8 +4,6 @@ locals {
     "${basename(abspath(var.source_dir))}-source",
   )
   tags                = merge({ managed_by = "cloudcron" }, var.tags)
-  build_args_list     = [for k, v in var.build_args : format("--build-arg %s=%s", k, v)]
-  build_args_str      = length(local.build_args_list) == 0 ? "" : "${join(" ", local.build_args_list)} "
   dockerfile_arg      = var.dockerfile_path == null ? "" : "-f ${var.dockerfile_path} "
   build_context_paths = var.build_context_paths == null ? [var.source_dir] : var.build_context_paths
   build_context_hash = sha1(join("", [
@@ -59,7 +57,6 @@ resource "null_resource" "build_and_push" {
   triggers = {
     image_tag       = var.image_tag
     repository_url  = aws_ecr_repository.lambda_image.repository_url
-    build_args      = jsonencode(var.build_args)
     platform        = var.platform
     build_context   = local.build_context_hash
     repository_name = aws_ecr_repository.lambda_image.name
@@ -71,7 +68,7 @@ resource "null_resource" "build_and_push" {
     command     = <<-EOC
       set -euo pipefail
       aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com
-      docker buildx build --platform ${var.platform} ${local.build_args_str}${local.dockerfile_arg}-t ${aws_ecr_repository.lambda_image.repository_url}:${var.image_tag} ${var.source_dir}
+      docker buildx build --platform ${var.platform} ${local.dockerfile_arg}-t ${aws_ecr_repository.lambda_image.repository_url}:${var.image_tag} ${var.source_dir}
       docker push ${aws_ecr_repository.lambda_image.repository_url}:${var.image_tag}
     EOC
   }

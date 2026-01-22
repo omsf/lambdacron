@@ -4,7 +4,7 @@
 
 ## Phase 0: Establish repo scaffolding
 
-- [x] Create directories: `modules/scheduled-lambda`, `modules/email-notification`, `modules/sms-notification`, `modules/lambda-container`, `examples/basic`.
+- [x] Create directories: `modules/scheduled-lambda`, `modules/email-notification`, `modules/sms-notification`, `modules/lambda-image-republish`, `examples/basic`.
 - [x] Add shared Terraform version constraints/provider stubs (`versions.tf`), ignore `.terraform.lock.hcl`, and add `.gitignore`.
 - [x] Wire `tofu fmt` via pre-commit hook.
 - [x] Add Pixi project file with toolchain (terraform/tofu, python for lambdas)
@@ -12,7 +12,7 @@
 
 ## Phase 1: Lambda container image management modules
 
-### Phase 1.1: Build Lambda container republish module (`modules/lambda-container`)
+### Phase 1.1: Build Lambda container republish module (`modules/lambda-image-republish`)
 - [x] Inputs: `source_lambda_repo`, `source_lambda_tag`, optional destination repo name, KMS encryption flag.
 - [x] Resources: destination ECR repo, permissions for pull/push, data source for source image digest, replication via `null_resource`/`local-exec` or pull-through cache rule.
 - [x] Outputs: destination `lambda_image_uri` for scheduled module.
@@ -60,7 +60,7 @@ To-do:
 ## Phase 4: Build notification modules
 
 ### Phase 4.1: Notification containers and queueing infra
-- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; allow build or republish via `lambda-image-build` or `lambda-container`.
+- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; allow build or republish via `lambda-image-build` or `lambda-image-republish`.
 - [x] Add a minimal "print" notifier handler that renders the template and logs/prints it for easy testing.
 - [x] Terraform: reusable notification plumbing module (SNS FIFO topic -> SQS FIFO queue -> Lambda event source mapping) with SQS access policy output.
 - [ ] Terraform: per-channel container build/publish; channel modules use the plumbing module and add channel-specific IAM and config.

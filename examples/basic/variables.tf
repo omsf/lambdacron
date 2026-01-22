@@ -28,12 +28,6 @@ variable "platform" {
   default     = "linux/amd64"
 }
 
-variable "build_args" {
-  description = "Build arguments passed to docker buildx."
-  type        = map(string)
-  default     = {}
-}
-
 variable "enable_republish" {
   description = "Set to true to republish from an existing ECR repository instead of building locally."
   type        = bool
