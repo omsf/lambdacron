@@ -38,7 +38,6 @@ module "email_notification" {
 - `sender` (string): Sender email address for SES.
 - `recipients` (list(string)): Recipient email addresses for SES.
 - `reply_to` (list(string)): Reply-to email addresses. Default `[]`.
-- `config_set` (string): Optional SES configuration set name. Default `null`.
 - `timeout` (number): Lambda timeout in seconds. Default `30`.
 - `memory_size` (number): Lambda memory size in MB. Default `256`.
 - `batch_size` (number): Max records per Lambda invocation. Default `10`.

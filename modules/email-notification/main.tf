@@ -9,7 +9,6 @@ locals {
     EMAIL_RECIPIENTS               = jsonencode(var.recipients)
   }
   optional_env = merge(
-    var.config_set != null ? { EMAIL_CONFIG_SET = var.config_set } : {},
     length(var.reply_to) > 0 ? { EMAIL_REPLY_TO = jsonencode(var.reply_to) } : {},
   )
   env_vars = merge(local.base_env, local.optional_env)

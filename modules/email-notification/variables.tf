@@ -74,12 +74,6 @@ variable "reply_to" {
   default     = []
 }
 
-variable "config_set" {
-  description = "Optional SES configuration set name."
-  type        = string
-  default     = null
-}
-
 variable "timeout" {
   description = "Lambda timeout in seconds."
   type        = number
