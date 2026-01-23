@@ -14,9 +14,9 @@ class CronLambdaTask(ABC):
 
     Parameters
     ----------
-    sns_topics : Mapping[str, str], optional
-        Mapping of topic keys to SNS topic ARNs. Defaults to loading from
-        the ``SNS_TOPICS`` environment variable.
+    sns_topic_arn : str, optional
+        SNS topic ARN used for all published results. Defaults to loading from
+        the ``SNS_TOPIC_ARN`` environment variable.
     sns_client : botocore.client.BaseClient, optional
         Preconfigured SNS client. If omitted, a client is created from the
         provided session.
@@ -27,22 +27,22 @@ class CronLambdaTask(ABC):
 
     Attributes
     ----------
-    sns_topics : dict[str, str]
-        A dictionary mapping SNS topic names to their ARNs.
+    sns_topic_arn : str
+        SNS topic ARN used for all published results.
 
     """
 
     def __init__(
         self,
         *,
-        sns_topics: Optional[Mapping[str, str]] = None,
+        sns_topic_arn: Optional[str] = None,
         sns_client: Optional[BaseClient] = None,
         session: Optional[boto3.session.Session] = None,
         logger: Optional[logging.Logger] = None,
     ) -> None:
-        if sns_topics is None:
-            sns_topics = load_sns_topics()
-        self.sns_topics = dict(sns_topics)
+        if sns_topic_arn is None:
+            sns_topic_arn = load_sns_topic_arn()
+        self.sns_topic_arn = sns_topic_arn
         if sns_client is None:
             session = session or boto3.session.Session()
             sns_client = session.client("sns")
@@ -69,7 +69,7 @@ class CronLambdaTask(ABC):
         result = self._perform_task(event, context)
         dispatch_sns_messages(
             result=result,
-            sns_topics=self.sns_topics,
+            sns_topic_arn=self.sns_topic_arn,
             sns_client=self.sns_client,
             logger=self.logger,
         )
@@ -77,9 +77,9 @@ class CronLambdaTask(ABC):
     @abstractmethod
     def _perform_task(self, event: Any, context: Any) -> dict[str, Any]:
         """
-        This should return a dictionary where each key corresponds to a key
-        from the sns_topics dictionary, and the value is the message to be
-        sent to that SNS topic as a JSON serializable object.
+        This should return a dictionary where each key corresponds to a
+        result type, and the value is the message to be sent to SNS as a
+        JSON serializable object.
 
         Parameters
         ----------
@@ -116,37 +116,29 @@ def extract_context_metadata(context: Any) -> dict[str, Optional[str]]:
     }
 
 
-def load_sns_topics(env_var: str = "SNS_TOPICS") -> dict[str, str]:
+def load_sns_topic_arn(env_var: str = "SNS_TOPIC_ARN") -> str:
     """
-    Load SNS topics from a JSON environment variable.
+    Load SNS topic ARN from the environment.
 
     Parameters
     ----------
     env_var : str, optional
-        Environment variable name containing a JSON object.
+        Environment variable name containing the SNS topic ARN.
 
     Returns
     -------
-    dict[str, str]
-        Mapping of topic keys to SNS topic ARNs.
+    str
+        SNS topic ARN.
 
     Raises
     ------
     ValueError
-        If the environment variable is missing or not a JSON mapping of strings.
+        If the environment variable is missing or empty.
     """
-    sns_topics_json = os.environ.get(env_var, "{}")
-    try:
-        raw = json.loads(sns_topics_json)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"{env_var} must be valid JSON") from exc
-    if not isinstance(raw, dict) or not all(
-        isinstance(key, str) and isinstance(value, str) for key, value in raw.items()
-    ):
-        raise ValueError(
-            f"{env_var} must be a JSON object of string keys to string ARNs"
-        )
-    return raw
+    sns_topic_arn = os.environ.get(env_var)
+    if not sns_topic_arn:
+        raise ValueError(f"{env_var} must be set to an SNS topic ARN")
+    return sns_topic_arn
 
 
 def load_sns_message_group_id(env_var: str = "SNS_MESSAGE_GROUP_ID") -> str:
@@ -166,37 +158,10 @@ def load_sns_message_group_id(env_var: str = "SNS_MESSAGE_GROUP_ID") -> str:
     return os.environ.get(env_var, "cloudcron")
 
 
-def validate_sns_result(
-    result: Mapping[str, Any], sns_topics: Mapping[str, str]
-) -> None:
-    """
-    Validate that results align with configured SNS topic keys.
-
-    Parameters
-    ----------
-    result : Mapping[str, Any]
-        Mapping of topic keys to payloads returned by the task.
-    sns_topics : Mapping[str, str]
-        Mapping of topic keys to SNS topic ARNs.
-
-    Raises
-    ------
-    ValueError
-        If the result contains unknown topic keys.
-    """
-    result_keys = set(result.keys())
-    topic_keys = set(sns_topics.keys())
-    unknown_topics = result_keys - topic_keys
-    if unknown_topics:
-        raise ValueError(
-            f"SNS topic mismatch (unknown topic keys: {sorted(unknown_topics)})"
-        )
-
-
 def dispatch_sns_messages(
     *,
     result: Mapping[str, Any],
-    sns_topics: Mapping[str, str],
+    sns_topic_arn: str,
     sns_client: BaseClient,
     logger: logging.Logger,
 ) -> None:
@@ -207,23 +172,27 @@ def dispatch_sns_messages(
     ----------
     result : Mapping[str, Any]
         Mapping of topic keys to message payloads.
-    sns_topics : Mapping[str, str]
-        Mapping of topic keys to SNS topic ARNs.
+    sns_topic_arn : str
+        SNS topic ARN to publish all result messages.
     sns_client : botocore.client.BaseClient
         SNS client used to publish messages.
     logger : logging.Logger
         Logger used to emit structured publish logs.
     """
-    validate_sns_result(result, sns_topics)
-    for topic_name, message in result.items():
-        topic_arn = sns_topics[topic_name]
+    for result_type, message in result.items():
         sns_client.publish(
-            TopicArn=topic_arn,
+            TopicArn=sns_topic_arn,
             Message=json.dumps(message),
-            Subject=f"Notification for {topic_name}",
+            Subject=f"Notification for {result_type}",
+            MessageAttributes={
+                "result_type": {
+                    "DataType": "String",
+                    "StringValue": result_type,
+                }
+            },
             MessageGroupId=load_sns_message_group_id(),
         )
         logger.info(
             "sns_publish",
-            extra={"topic_name": topic_name, "topic_arn": topic_arn},
+            extra={"result_type": result_type, "topic_arn": sns_topic_arn},
         )
