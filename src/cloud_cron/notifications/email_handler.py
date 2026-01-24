@@ -2,6 +2,7 @@ import logging
 from typing import Any, Mapping, Optional, Sequence
 
 import boto3
+from botocore.exceptions import ClientError
 from jinja2 import Environment
 
 from cloud_cron.notifications.base import (
@@ -108,7 +109,21 @@ class EmailNotificationHandler(RenderedTemplateNotificationHandler):
             payload["ConfigurationSetName"] = self.config_set
         if self.reply_to:
             payload["ReplyToAddresses"] = self.reply_to
-        response = self.ses_client.send_email(**payload)
+        try:
+            response = self.ses_client.send_email(**payload)
+        except ClientError as exc:
+            error = exc.response.get("Error", {})
+            meta = exc.response.get("ResponseMetadata", {})
+            self.logger.exception(
+                "ses_email_failed",
+                extra={
+                    "error_code": error.get("Code"),
+                    "error_message": error.get("Message"),
+                    "request_id": meta.get("RequestId"),
+                    "http_status": meta.get("HTTPStatusCode"),
+                },
+            )
+            raise
         self.logger.info(
             "ses_email_sent",
             extra={"message_id": response.get("MessageId")},
