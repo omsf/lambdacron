@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any, Mapping, Optional
 
 from jinja2 import Environment, StrictUndefined
 
@@ -91,7 +91,9 @@ class RenderedTemplateNotificationHandler(ABC):
         self.logger = logger or logging.getLogger(self.__class__.__name__)
         self.jinja_env = jinja_env or Environment(undefined=StrictUndefined)
 
-    def lambda_handler(self, event: Mapping[str, Any], context: Any) -> None:
+    def lambda_handler(
+        self, event: Mapping[str, Any], context: Any
+    ) -> dict[str, list[dict[str, str]]]:
         """
         Entry point for SQS-triggered notification handlers.
 
@@ -101,6 +103,11 @@ class RenderedTemplateNotificationHandler(ABC):
             Lambda event payload containing SQS records.
         context : Any
             Lambda context object.
+
+        Returns
+        -------
+        dict[str, list[dict[str, str]]]
+            Batch item failures payload for SQS partial retries.
         """
         self.logger.info(
             "notification_invocation",
@@ -110,9 +117,24 @@ class RenderedTemplateNotificationHandler(ABC):
             name: provider.get_template()
             for name, provider in self.template_providers.items()
         }
-        for record, result in self._iter_results(event):
-            rendered = self._render_templates(templates, result)
-            self.notify(result=result, rendered=rendered, record=record)
+        failures = []
+        records = event.get("Records", [])
+        for record in records:
+            try:
+                self._validate_record(record)
+                result = self._parse_result(record)
+                rendered = self._render_templates(templates, result)
+                self.notify(result=result, rendered=rendered, record=record)
+            except Exception as exc:
+                message_id = record.get("messageId")
+                if not message_id:
+                    raise
+                self.logger.exception(
+                    "notification_record_failed",
+                    extra={"message_id": message_id, "error": str(exc)},
+                )
+                failures.append({"itemIdentifier": message_id})
+        return {"batchItemFailures": failures}
 
     @abstractmethod
     def notify(
@@ -136,21 +158,16 @@ class RenderedTemplateNotificationHandler(ABC):
         """
         raise NotImplementedError
 
-    def _iter_results(
-        self, event: Mapping[str, Any]
-    ) -> Iterable[tuple[Mapping[str, Any], Mapping[str, Any]]]:
-        records = event.get("Records", [])
-        for record in records:
-            event_source = record.get("eventSource")
-            if event_source and event_source != "aws:sqs":
-                raise ValueError(f"Unsupported event source: {event_source}")
-            if self.expected_queue_arn:
-                event_arn = record.get("eventSourceARN")
-                if event_arn != self.expected_queue_arn:
-                    raise ValueError(
-                        f"SQS queue mismatch (expected {self.expected_queue_arn}, got {event_arn})"
-                    )
-            yield record, self._parse_result(record)
+    def _validate_record(self, record: Mapping[str, Any]) -> None:
+        event_source = record.get("eventSource")
+        if event_source and event_source != "aws:sqs":
+            raise ValueError(f"Unsupported event source: {event_source}")
+        if self.expected_queue_arn:
+            event_arn = record.get("eventSourceARN")
+            if event_arn != self.expected_queue_arn:
+                raise ValueError(
+                    f"SQS queue mismatch (expected {self.expected_queue_arn}, got {event_arn})"
+                )
 
     def _parse_result(self, record: Mapping[str, Any]) -> Mapping[str, Any]:
         body = record.get("body")

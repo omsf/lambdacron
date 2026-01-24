@@ -2,7 +2,6 @@ import json
 import logging
 
 import pytest
-from jinja2 import UndefinedError
 
 from cloud_cron.notifications.base import (
     EnvVarTemplateProvider,
@@ -25,10 +24,12 @@ def build_sqs_event(
     event_source="aws:sqs",
     event_source_arn=None,
     message_attributes=None,
+    message_id="msg-123",
 ):
     record = {
         "body": body,
         "eventSource": event_source,
+        "messageId": message_id,
     }
     if event_source_arn:
         record["eventSourceARN"] = event_source_arn
@@ -55,7 +56,7 @@ def test_notification_handler_parses_sqs_json_body(monkeypatch):
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
     event = build_sqs_event(json.dumps({"status": "ok"}))
 
-    handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
 
     assert handler.calls == [
         {
@@ -64,6 +65,7 @@ def test_notification_handler_parses_sqs_json_body(monkeypatch):
             "record": event["Records"][0],
         }
     ]
+    assert response == {"batchItemFailures": []}
 
 
 def test_notification_handler_parses_sns_envelope(monkeypatch):
@@ -72,9 +74,10 @@ def test_notification_handler_parses_sns_envelope(monkeypatch):
     sns_body = json.dumps({"Message": json.dumps({"status": "good"})})
     event = build_sqs_event(sns_body)
 
-    handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
 
     assert handler.calls[0]["rendered"]["body"] == "Result good"
+    assert response == {"batchItemFailures": []}
 
 
 def test_notification_handler_rejects_wrong_event_source(monkeypatch):
@@ -82,8 +85,9 @@ def test_notification_handler_rejects_wrong_event_source(monkeypatch):
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
     event = build_sqs_event(json.dumps({"name": "Ada"}), event_source="aws:s3")
 
-    with pytest.raises(ValueError, match="Unsupported event source"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_notification_handler_validates_queue_arn(monkeypatch):
@@ -97,8 +101,9 @@ def test_notification_handler_validates_queue_arn(monkeypatch):
         event_source_arn="arn:aws:sqs:us-east-1:123:other",
     )
 
-    with pytest.raises(ValueError, match="SQS queue mismatch"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_notification_handler_raises_on_missing_template_vars(monkeypatch):
@@ -106,8 +111,9 @@ def test_notification_handler_raises_on_missing_template_vars(monkeypatch):
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
     event = build_sqs_event(json.dumps({"status": "ok"}))
 
-    with pytest.raises(UndefinedError):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_notification_handler_logs_invocation(monkeypatch, caplog):
@@ -132,10 +138,11 @@ def test_notification_handler_logs_invocation(monkeypatch, caplog):
 def test_parse_result_rejects_missing_body(monkeypatch):
     monkeypatch.setenv("TEMPLATE", "Hello {{ name }}")
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
-    event = {"Records": [{"eventSource": "aws:sqs"}]}
+    event = {"Records": [{"eventSource": "aws:sqs", "messageId": "msg-123"}]}
 
-    with pytest.raises(ValueError, match="SQS record body is missing"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_parse_result_rejects_invalid_json_body(monkeypatch):
@@ -143,8 +150,9 @@ def test_parse_result_rejects_invalid_json_body(monkeypatch):
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
     event = build_sqs_event("{bad")
 
-    with pytest.raises(ValueError, match="SQS record body must be valid JSON"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_parse_result_rejects_non_string_sns_message(monkeypatch):
@@ -153,8 +161,9 @@ def test_parse_result_rejects_non_string_sns_message(monkeypatch):
     body = json.dumps({"Message": {"status": "ok"}})
     event = build_sqs_event(body)
 
-    with pytest.raises(ValueError, match="SNS message must be a JSON string"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_parse_result_rejects_invalid_sns_message_json(monkeypatch):
@@ -163,8 +172,9 @@ def test_parse_result_rejects_invalid_sns_message_json(monkeypatch):
     body = json.dumps({"Message": "{bad"})
     event = build_sqs_event(body)
 
-    with pytest.raises(ValueError, match="SNS message must be valid JSON"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 def test_parse_result_rejects_non_object_payload(monkeypatch):
@@ -172,8 +182,9 @@ def test_parse_result_rejects_non_object_payload(monkeypatch):
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
     event = build_sqs_event(json.dumps(["not", "an", "object"]))
 
-    with pytest.raises(ValueError, match="Result payload must be a JSON object"):
-        handler.lambda_handler(event, context=None)
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
 @pytest.mark.parametrize("include_result_type", [True, False])
