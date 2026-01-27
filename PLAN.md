@@ -108,20 +108,45 @@ To-do:
 - [ ] Verify: `terraform validate`; handler unit tests green; document smoke test (publish SNS message to topic -> SMS sent).
 - [ ] Example touchpoint: add the SMS module to `examples/basic` (guard secrets/recipients via variables) and include a smoke path in the README.
 
-## Phase 5: Hardening, testing, documentation, release
+## Phase 5: Client adoption and distribution
 
-### Phase 5.1: Example polish and end-to-end regression (`examples/basic`)
+Overview: make it easy for client teams to build and deploy their own scheduled lambdas by shipping a Python package, public container images for notification channels, and a single Terraform "stack" module that wires the pieces together.
+
+Success criteria:
+
+- `cloud_cron` is published to PyPI with documented install/use guidance.
+- Public ECR image(s) exist for default notification handlers (at least the print notifier), and are referenced in module docs/examples.
+- A stack module exists that provisions the shared SNS topic and wires scheduled-lambda + one or more notification modules with minimal inputs.
+
+Decisions and motivations:
+
+- A stack module reduces boilerplate and makes first-time setup approachable.
+- Public ECR images remove the need for clients to build their own notification containers.
+- PyPI publishing lowers friction for authoring custom lambdas using the shared helpers.
+
+To-do:
+
+- [ ] Package `src/cloud_cron` for PyPI (metadata, versioning, build/release docs).
+- [ ] Publish `cloud_cron` to PyPI and document install + usage expectations.
+- [ ] Provide public ECR image(s) for default notification handlers; document the URI(s) and versioning strategy.
+- [ ] Add `modules/stack` to create SNS topic + scheduled-lambda + notification modules with minimal configuration.
+- [ ] Update `examples/basic` to use the stack module and public images where possible.
+- [ ] Verify: `terraform validate`; example `plan`; PyPI install works; public ECR image pulls successfully.
+
+## Phase 6: Hardening, testing, documentation, release
+
+### Phase 6.1: Example polish and end-to-end regression (`examples/basic`)
 - [ ] Consolidate prior touchpoints into a clean walkthrough (init, plan, apply, publish test message through SNS->SQS->Lambda handlers).
 - [ ] Ensure defaults/variables make the example easy to run with minimal secrets, with notes for SES/Twilio sandboxing.
 - [ ] Verify: `terraform fmt/validate` and `terraform plan` in example; capture expected outputs/log markers for manual SNS publish tests.
 
-### Phase 5.2: Testing & CI
+### Phase 6.2: Testing & CI
 - [ ] Add `make test` to run fmt, validate, lint, and Lambda unit tests.
 - [ ] Consider lightweight Terratest for scheduled-lambda wiring (guarded to skip apply by default).
 - [ ] Add CI workflow (e.g., GitHub Actions) for formatting, validation, and unit tests on PRs.
 - [ ] Verify: CI passes on clean tree; local `make test` passes.
 
-### Phase 5.3: Documentation & release
+### Phase 6.3: Documentation & release
 - [ ] Top-level README: module overview, prerequisites (AWS creds, SES/Twilio setup), quickstart commands.
 - [ ] Module READMEs: inputs/outputs tables and examples (generated or hand-written).
 - [ ] Changelog/semver plan; tag first release after example `plan`/smoke tests documented.
