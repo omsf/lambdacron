@@ -74,20 +74,13 @@ locals {
   active_email_image_uri  = module.email_lambda_image_build.image_uri_with_digest
 }
 
-resource "aws_sns_topic" "results" {
-  name                        = "cloud-cron-results.fifo"
-  fifo_topic                  = true
-  content_based_deduplication = true
-  tags                        = local.common_tags
-}
+module "cloud_cron" {
+  source = "../.."
 
-module "scheduled_lambda" {
-  source = "../../modules/scheduled-lambda"
-
+  aws_region          = var.aws_region
   lambda_image_uri    = local.active_lambda_image_uri
   schedule_expression = var.schedule_expression
   lambda_name         = var.lambda_name
-  sns_topic_arn       = aws_sns_topic.results.arn
 
   tags = local.common_tags
 }
@@ -95,7 +88,7 @@ module "scheduled_lambda" {
 module "print_notification" {
   source = "../../modules/print-notification"
 
-  sns_topic_arn    = aws_sns_topic.results.arn
+  sns_topic_arn    = module.cloud_cron.sns_topic_arn
   fifo_queue_name  = "example-print.fifo"
   lambda_image_uri = local.active_print_image_uri
   template_file    = "${path.module}/templates/print.txt"
@@ -106,7 +99,7 @@ module "print_notification" {
 module "email_notification" {
   source = "../../modules/email-notification"
 
-  sns_topic_arn    = aws_sns_topic.results.arn
+  sns_topic_arn    = module.cloud_cron.sns_topic_arn
   fifo_queue_name  = "example-email.fifo"
   lambda_image_uri = local.active_email_image_uri
 
@@ -138,5 +131,5 @@ output "active_lambda_image_uri" {
 
 output "scheduled_lambda_arn" {
   description = "ARN of the scheduled Lambda."
-  value       = module.scheduled_lambda.lambda_arn
+  value       = module.cloud_cron.scheduled_lambda_arn
 }

@@ -129,8 +129,8 @@ To-do:
 - [ ] Package `src/cloud_cron` for PyPI (metadata, versioning, build/release docs).
 - [ ] Publish `cloud_cron` to PyPI and document install + usage expectations.
 - [ ] Provide public ECR image(s) for default notification handlers; document the URI(s) and versioning strategy.
-- [ ] Add `modules/stack` to create SNS topic + scheduled-lambda + notification modules with minimal configuration.
-- [ ] Update `examples/basic` to use the stack module and public images where possible.
+- [x] Add module in repo root to create SNS topic + scheduled-lambda with minimal configuration. This, plus notifications, can be reused by end users.
+- [ ] Update `examples/basic` to use the main module and public images where possible.
 - [ ] Verify: `terraform validate`; example `plan`; PyPI install works; public ECR image pulls successfully.
 
 ## Phase 6: Hardening, testing, documentation, release
