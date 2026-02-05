@@ -66,6 +66,10 @@ resource "aws_lambda_function" "print" {
   timeout       = var.timeout
   memory_size   = var.memory_size
 
+  image_config {
+    command = ["lambda.print_handler"]
+  }
+
   environment {
     variables = {
       (var.template_env_var) = file(var.template_file)

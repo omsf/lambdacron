@@ -104,6 +104,10 @@ resource "aws_lambda_function" "email" {
   timeout       = var.timeout
   memory_size   = var.memory_size
 
+  image_config {
+    command = ["lambda.email_handler"]
+  }
+
   environment {
     variables = local.env_vars
   }
