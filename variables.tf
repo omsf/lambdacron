@@ -12,11 +12,6 @@ variable "topic_name" {
   description = "Name of the shared SNS topic for scheduled results."
   type        = string
   default     = "cloud-cron-results.fifo"
-
-  validation {
-    condition     = !var.fifo_topic || can(regex("\\.fifo$", var.topic_name))
-    error_message = "When fifo_topic is true, topic_name must end with .fifo."
-  }
 }
 
 variable "fifo_topic" {

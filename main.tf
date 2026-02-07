@@ -9,6 +9,13 @@ resource "aws_sns_topic" "results" {
   content_based_deduplication = var.fifo_topic ? var.content_based_deduplication : null
 
   tags = local.tags
+
+  lifecycle {
+    precondition {
+      condition     = !var.fifo_topic || can(regex("\\.fifo$", var.topic_name))
+      error_message = "When fifo_topic is true, topic_name must end with .fifo."
+    }
+  }
 }
 
 module "scheduled_lambda" {

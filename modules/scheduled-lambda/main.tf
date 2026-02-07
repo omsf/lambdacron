@@ -63,7 +63,7 @@ resource "aws_lambda_function" "scheduled" {
   memory_size   = var.memory_size
 
   dynamic "image_config" {
-    for_each = var.image_command != null && length(var.image_command) > 0 ? [1] : []
+    for_each = length(coalesce(var.image_command, [])) > 0 ? [1] : []
 
     content {
       command = var.image_command
