@@ -33,3 +33,8 @@ module "scheduled_lambda" {
 
   tags = local.tags
 }
+
+variable "aws_region" {
+  description = "AWS region used by the provider configuration."
+  type        = string
+}
