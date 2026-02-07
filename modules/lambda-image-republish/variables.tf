@@ -17,11 +17,6 @@ variable "destination_repository_name" {
   description = "Optional override for the destination repository name. Defaults to <source>-local."
   type        = string
   default     = null
-
-  validation {
-    condition     = var.destination_repository_name == null || length(regexall("/", var.destination_repository_name)) == 0
-    error_message = "destination_repository_name must not contain '/'."
-  }
 }
 
 variable "enable_kms_encryption" {
