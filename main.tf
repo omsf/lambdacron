@@ -25,16 +25,12 @@ module "scheduled_lambda" {
   schedule_expression = var.schedule_expression
   sns_topic_arn       = aws_sns_topic.results.arn
 
-  lambda_env    = var.lambda_env
-  timeout       = var.timeout
-  memory_size   = var.memory_size
-  lambda_name   = var.lambda_name
-  image_command = var.image_command
+  lambda_env      = var.lambda_env
+  timeout         = var.timeout
+  memory_size     = var.memory_size
+  lambda_name     = var.lambda_name
+  image_command   = var.image_command
+  create_test_url = var.create_test_url
 
   tags = local.tags
-}
-
-variable "aws_region" {
-  description = "AWS region used by the provider configuration."
-  type        = string
 }

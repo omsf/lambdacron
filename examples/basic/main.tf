@@ -114,5 +114,5 @@ output "scheduled_lambda_arn" {
 
 output "scheduled_lambda_test_url" {
   description = "Lambda Function URL for on-demand test invokes (null if disabled)."
-  value       = module.scheduled_lambda.test_function_url
+  value       = module.cloud_cron.scheduled_lambda_test_url
 }

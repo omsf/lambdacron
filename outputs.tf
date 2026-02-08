@@ -27,3 +27,8 @@ output "schedule_rule_name" {
   description = "EventBridge schedule rule name."
   value       = module.scheduled_lambda.schedule_rule_name
 }
+
+output "scheduled_lambda_test_url" {
+  description = "Lambda Function URL for on-demand test invokes (null if disabled)."
+  value       = module.scheduled_lambda.test_function_url
+}

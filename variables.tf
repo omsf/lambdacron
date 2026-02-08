@@ -3,6 +3,11 @@ variable "lambda_image_uri" {
   type        = string
 }
 
+variable "aws_region" {
+  description = "AWS region to deploy resources."
+  type        = string
+}
+
 variable "schedule_expression" {
   description = "EventBridge schedule expression (e.g., rate(5 minutes) or cron(0 12 * * ? *))."
   type        = string
@@ -54,6 +59,12 @@ variable "image_command" {
   description = "Optional override for the container CMD/handler."
   type        = list(string)
   default     = null
+}
+
+variable "create_test_url" {
+  description = "Whether to create a Lambda Function URL for on-demand test invokes."
+  type        = bool
+  default     = false
 }
 
 variable "tags" {
