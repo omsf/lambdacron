@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "moto", "pre-commit"]
+dev = ["pytest", "pytest-cov", "moto", "pre-commit", "mkdocs"]
 [tool.setuptools]
 package-dir = {"" = "src"}
 
