@@ -20,7 +20,7 @@ module "notification_image" {
 
   build_context_paths = [
     abspath(path.module),
-    abspath("${path.module}/../src/cloud_cron"),
+    abspath("${path.module}/../src/lambdacron"),
   ]
 
   providers = {

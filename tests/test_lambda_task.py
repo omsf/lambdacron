@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from cloud_cron.lambda_task import (
+from lambdacron.lambda_task import (
     CronLambdaTask,
     dispatch_sns_messages,
     extract_context_metadata,

@@ -2,9 +2,9 @@ import json
 import os
 from typing import Any
 
-from cloud_cron.notifications.base import EnvVarTemplateProvider
-from cloud_cron.notifications.email_handler import EmailNotificationHandler
-from cloud_cron.notifications.print_handler import PrintNotificationHandler
+from lambdacron.notifications.base import EnvVarTemplateProvider
+from lambdacron.notifications.email_handler import EmailNotificationHandler
+from lambdacron.notifications.print_handler import PrintNotificationHandler
 
 
 def _load_json_list(env_var: str, *, required: bool = False) -> list[str]:

@@ -1,10 +1,10 @@
-from cloud_cron.notifications.base import (
+from lambdacron.notifications.base import (
     EnvVarTemplateProvider,
     RenderedTemplateNotificationHandler,
     TemplateProvider,
 )
-from cloud_cron.notifications.email_handler import EmailNotificationHandler
-from cloud_cron.notifications.print_handler import PrintNotificationHandler
+from lambdacron.notifications.email_handler import EmailNotificationHandler
+from lambdacron.notifications.print_handler import PrintNotificationHandler
 
 __all__ = [
     "EmailNotificationHandler",

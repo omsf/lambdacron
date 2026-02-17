@@ -17,7 +17,7 @@ module "lambda_image_build" {
   dockerfile_path = "${path.module}/lambda/Dockerfile"
   build_context_paths = [
     "${path.module}/lambda",
-    "${path.module}/../../src/cloud_cron",
+    "${path.module}/../../src/lambdacron",
   ]
   repository_name = var.repository_name
   image_tag       = var.image_tag

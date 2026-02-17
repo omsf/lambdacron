@@ -1,6 +1,6 @@
 from typing import Any, Mapping
 
-from cloud_cron.notifications.base import (
+from lambdacron.notifications.base import (
     RenderedTemplateNotificationHandler,
     TemplateProvider,
 )

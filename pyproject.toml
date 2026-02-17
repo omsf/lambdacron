@@ -3,9 +3,9 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cloud-cron"
+name = "lambdacron"
 version = "0.1.0"
-description = "Cloud Cron runtime helpers"
+description = "LambdaCron runtime helpers"
 authors = [{name = "David W.H. Swenson", email = "david.swenson@omsf.io"}]
 requires-python = ">=3.12"
 dependencies = [
@@ -26,7 +26,7 @@ line-length = 88
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-name = "cloud-cron"
+name = "lambdacron"
 platforms = ["osx-64", "osx-arm64", "linux-64"]
 version = "0.1.0"
 
@@ -40,7 +40,7 @@ opentofu = "*"
 python = "*"
 
 [tool.pixi.feature.dev.pypi-dependencies]
-cloud-cron = { path = ".", editable = true, extras = ["dev"] }
+lambdacron = { path = ".", editable = true, extras = ["dev"] }
 
 [tool.pixi.feature.dev.tasks]
 pytest-cov = "pytest -v --cov --cov-report=xml"
