@@ -31,3 +31,16 @@
 - Use structured logging over prints; avoid noisy logs in hot paths.
 - Fail fast with clear errors; prefer explicit exceptions to silent fallbacks.
 - Keep configuration externalized (env vars/config files) and document defaults.
+
+## Documentation (Diataxis + MkDocs)
+- Write docs in Markdown and keep them under `docs/` for MkDocs rendering.
+- Follow Diataxis and keep content intent-specific:
+  - `docs/tutorials/` for guided learning.
+  - `docs/how-to/` for task-oriented procedures.
+  - `docs/reference/` for factual API/module/config details.
+  - `docs/explanation/` for rationale, tradeoffs, and architecture context.
+- Do not mix Diataxis types on a single page; split pages when intent changes.
+- Any PR that changes behavior, inputs/outputs, or operations should update the corresponding docs in the same PR.
+- Prefer runnable, copy/paste-safe examples with prerequisites and expected outcomes.
+- Keep MkDocs navigation explicit in `mkdocs.yml` and use stable page paths/titles to reduce link churn.
+
