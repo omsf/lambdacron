@@ -1,4 +1,4 @@
-# Cloud Cron To-Do Plan
+# LambdaCron To-Do Plan
 
 `examples/basic` is our living testbed: we will evolve it in each phase as modules land, rather than waiting until the end.
 
@@ -53,38 +53,38 @@ To-do:
 - [x] Update `modules/scheduled-lambda` to accept `sns_topic_arn` (single) and adjust IAM to `sns:Publish` on that ARN.
 - [x] Update notification plumbing module to accept `result_types` and apply SNS filter policy on the subscription.
 - [x] Update existing per-channel modules to pass through `result_types` and document the attribute name.
-- [x] Update `src/cloud_cron/` helpers to publish with a `result_type` attribute and validate allowed types.
+- [x] Update `src/lambdacron/` helpers to publish with a `result_type` attribute and validate allowed types.
 - [x] Update `examples/basic` to use one topic and a single `result_types` subscription.
 - [x] Update module READMEs and `IDEA.md` usage examples to match the new wiring.
 
-## Phase 3: Python runtime library for custom lambdas (`src/cloud_cron/`)
+## Phase 3: Python runtime library for custom lambdas (`src/lambdacron/`)
 
-Overview: turn the existing Python helpers into a reusable, testable library that makes it easy for users to author scheduled lambdas while keeping SNS wiring and logging consistent. This package will also host shared notification handler code (under `src/cloud_cron/notifications/`), while deployment/container wiring remains in Terraform modules.
+Overview: turn the existing Python helpers into a reusable, testable library that makes it easy for users to author scheduled lambdas while keeping SNS wiring and logging consistent. This package will also host shared notification handler code (under `src/lambdacron/notifications/`), while deployment/container wiring remains in Terraform modules.
 
 Success criteria:
 
 - A minimal, well-documented API for defining tasks and dispatching results to SNS.
-- Clear guidance in `src/cloud_cron/HOWTO-custom-lambda.md` that matches the library behavior.
+- Clear guidance in `src/lambdacron/HOWTO-custom-lambda.md` that matches the library behavior.
 - Unit tests covering the core dispatch and handler flow using mocked AWS clients.
 
 Decisions and motivations:
 
-- Keep code in `src/cloud_cron/` to stay close to Terraform modules and examples, while enabling importable Python helpers.
+- Keep code in `src/lambdacron/` to stay close to Terraform modules and examples, while enabling importable Python helpers.
 - Prefer dependency injection for AWS clients to avoid real AWS calls and keep tests fast.
 
 To-do:
 
 - [x] Refine the base task class to be typed, injectable (boto3 session/client), and structured-logging friendly.
 - [x] Add a small SNS dispatch helper that validates topic keys and emits clear errors on mismatches.
-- [x] Add `src/cloud_cron/notifications/` for shared handler logic (SES/Twilio/etc.) that can be imported by notification runtimes.
-- [x] Update `src/cloud_cron/HOWTO-custom-lambda.md` to show the current recommended pattern and env var expectations.
+- [x] Add `src/lambdacron/notifications/` for shared handler logic (SES/Twilio/etc.) that can be imported by notification runtimes.
+- [x] Update `src/lambdacron/HOWTO-custom-lambda.md` to show the current recommended pattern and env var expectations.
 - [x] Add pytest cases with moto/mocks to cover SNS publish and mismatch errors.
 - [x] Document a minimal example task module that can be used in `examples/basic` or in a client repo.
 
 ## Phase 4: Build notification modules
 
 ### Phase 4.1: Notification containers and queueing infra
-- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/cloud_cron/notifications/`; allow build or republish via `lambda-image-build` or `lambda-image-republish`.
+- [ ] Build one container per notification channel (email, SMS, print) using shared helpers from `src/lambdacron/notifications/`; allow build or republish via `lambda-image-build` or `lambda-image-republish`.
 - [x] Add a minimal "print" notifier handler that renders the template and logs/prints it for easy testing.
 - [x] Terraform: reusable notification plumbing module (SNS FIFO topic -> SQS FIFO queue -> Lambda event source mapping) with SQS access policy output.
 - [ ] Terraform: per-channel container build/publish; channel modules use the plumbing module and add channel-specific IAM and config.
@@ -114,7 +114,7 @@ Overview: make it easy for client teams to build and deploy their own scheduled 
 
 Success criteria:
 
-- `cloud_cron` is published to PyPI with documented install/use guidance.
+- `lambdacron` is published to PyPI with documented install/use guidance.
 - Public ECR image(s) exist for default notification handlers (at least the print notifier), and are referenced in module docs/examples.
 - A stack module exists that provisions the shared SNS topic and wires scheduled-lambda + one or more notification modules with minimal inputs.
 
@@ -126,8 +126,8 @@ Decisions and motivations:
 
 To-do:
 
-- [ ] Package `src/cloud_cron` for PyPI (metadata, versioning, build/release docs).
-- [ ] Publish `cloud_cron` to PyPI and document install + usage expectations.
+- [ ] Package `src/lambdacron` for PyPI (metadata, versioning, build/release docs).
+- [ ] Publish `lambdacron` to PyPI and document install + usage expectations.
 - [x] Provide public ECR image(s) for default notification handlers; document the URI(s) and versioning strategy.
 - [x] Add module in repo root to create SNS topic + scheduled-lambda with minimal configuration. This, plus notifications, can be reused by end users.
 - [x] Update `examples/basic` to use the main module and public images where possible.

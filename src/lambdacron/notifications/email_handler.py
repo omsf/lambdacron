@@ -5,7 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 from jinja2 import Environment
 
-from cloud_cron.notifications.base import (
+from lambdacron.notifications.base import (
     RenderedTemplateNotificationHandler,
     TemplateProvider,
 )

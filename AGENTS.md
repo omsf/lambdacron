@@ -1,4 +1,4 @@
-# Cloud Cron Agents
+# LambdaCron Agents
 
 - Big picture vision is kept in `IDEA.md`.
 - The specific plan we're executing is in `PLAN.md`.
@@ -24,7 +24,7 @@
 ## Infrastructure (opentofu)
 - Keep infrastructure code formatted and validated: `tofu fmt` and `tofu validate` before sharing.
 - Separate plan/apply steps; never apply without review. Capture variables in `.tfvars` or env, not inline secrets.
-- AWS resources should be tagged with `managed_by`, defaulting to `cloudcron` if not set.
+- AWS resources should be tagged with `managed_by`, defaulting to `lambdacron` if not set.
 
 
 ## Observability and Safety

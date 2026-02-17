@@ -1,6 +1,6 @@
 locals {
-  tags        = merge({ managed_by = "cloudcron" }, var.tags)
-  lambda_name = coalesce(var.lambda_name, "cloudcron-print-${terraform.workspace}")
+  tags        = merge({ managed_by = "lambdacron" }, var.tags)
+  lambda_name = coalesce(var.lambda_name, "lambdacron-print-${terraform.workspace}")
 }
 
 data "aws_caller_identity" "current" {}

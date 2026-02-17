@@ -4,9 +4,9 @@ provider "aws" {
 
 locals {
   common_tags = merge(
-    { managed_by = "cloudcron" },
+    { managed_by = "lambdacron" },
     var.tags,
-    { project = "cloud-cron-example-basic" },
+    { project = "lambdacron-example-basic" },
   )
 }
 
@@ -17,7 +17,7 @@ module "lambda_image_build" {
   dockerfile_path = "${path.module}/lambda/Dockerfile"
   build_context_paths = [
     "${path.module}/lambda",
-    "${path.module}/../../src/cloud_cron",
+    "${path.module}/../../src/lambdacron",
   ]
   repository_name = var.repository_name
   image_tag       = var.image_tag
@@ -51,7 +51,7 @@ locals {
   notification_image_uri  = module.notification_image_republish.lambda_image_uri_with_digest
 }
 
-module "cloud_cron" {
+module "lambdacron" {
   source = "../.."
 
   aws_region          = var.aws_region
@@ -66,7 +66,7 @@ module "cloud_cron" {
 module "print_notification" {
   source = "../../modules/print-notification"
 
-  sns_topic_arn    = module.cloud_cron.sns_topic_arn
+  sns_topic_arn    = module.lambdacron.sns_topic_arn
   fifo_queue_name  = "example-print.fifo"
   lambda_image_uri = local.notification_image_uri
   template_file    = "${path.module}/templates/print.txt"
@@ -77,7 +77,7 @@ module "print_notification" {
 module "email_notification" {
   source = "../../modules/email-notification"
 
-  sns_topic_arn    = module.cloud_cron.sns_topic_arn
+  sns_topic_arn    = module.lambdacron.sns_topic_arn
   fifo_queue_name  = "example-email.fifo"
   lambda_image_uri = local.notification_image_uri
 
@@ -109,10 +109,10 @@ output "active_lambda_image_uri" {
 
 output "scheduled_lambda_arn" {
   description = "ARN of the scheduled Lambda."
-  value       = module.cloud_cron.scheduled_lambda_arn
+  value       = module.lambdacron.scheduled_lambda_arn
 }
 
 output "scheduled_lambda_test_url" {
   description = "Lambda Function URL for on-demand test invokes (null if disabled)."
-  value       = module.cloud_cron.scheduled_lambda_test_url
+  value       = module.lambdacron.scheduled_lambda_test_url
 }

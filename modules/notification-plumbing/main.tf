@@ -1,5 +1,5 @@
 locals {
-  tags = merge({ managed_by = "cloudcron" }, var.tags)
+  tags = merge({ managed_by = "lambdacron" }, var.tags)
   filter_policy = length(var.result_types) > 0 ? jsonencode({
     result_type = var.result_types
   }) : null

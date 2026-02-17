@@ -12,7 +12,7 @@ variable "aws_region" {
 variable "repository_name" {
   description = "Public ECR repository name."
   type        = string
-  default     = "cloud-cron-notifications"
+  default     = "lambdacron-notifications"
 }
 
 variable "image_tag" {
@@ -30,7 +30,7 @@ variable "platform" {
 variable "short_description" {
   description = "Short description for the public ECR catalog."
   type        = string
-  default     = "Cloud Cron notification handlers (email + print)"
+  default     = "LambdaCron notification handlers (email + print)"
 }
 
 variable "about_text" {
@@ -42,7 +42,7 @@ variable "about_text" {
 variable "usage_text" {
   description = "Usage text for the public ECR catalog."
   type        = string
-  default     = "Use handler entrypoints lambda.email_handler or lambda.print_handler with the Cloud Cron notification modules."
+  default     = "Use handler entrypoints lambda.email_handler or lambda.print_handler with the LambdaCron notification modules."
 }
 
 variable "architectures" {

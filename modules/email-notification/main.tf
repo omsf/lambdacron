@@ -1,6 +1,6 @@
 locals {
-  tags        = merge({ managed_by = "cloudcron" }, var.tags)
-  lambda_name = coalesce(var.lambda_name, "cloudcron-email-${terraform.workspace}")
+  tags        = merge({ managed_by = "lambdacron" }, var.tags)
+  lambda_name = coalesce(var.lambda_name, "lambdacron-email-${terraform.workspace}")
   base_env = {
     (var.subject_template_env_var) = file(var.subject_template_file)
     (var.text_template_env_var)    = file(var.text_template_file)

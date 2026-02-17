@@ -4,7 +4,7 @@ locals {
   source_repo_name  = local.source_repo_parts[2]
   source_repo       = "${local.source_namespace}/${local.source_repo_name}"
   repository_name   = coalesce(var.destination_repository_name, "${local.source_repo_name}-local")
-  tags              = merge({ managed_by = "cloudcron" }, var.tags)
+  tags              = merge({ managed_by = "lambdacron" }, var.tags)
   source_image_uri = format(
     "public.ecr.aws/%s:%s",
     local.source_repo,

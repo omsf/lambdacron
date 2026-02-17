@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from cloud_cron.lambda_task import (
+from lambdacron.lambda_task import (
     CronLambdaTask,
     dispatch_sns_messages,
     extract_context_metadata,
@@ -33,7 +33,7 @@ def test_load_sns_topic_arn_requires_value(monkeypatch):
 
 def test_load_sns_message_group_id_default(monkeypatch):
     monkeypatch.delenv("SNS_MESSAGE_GROUP_ID", raising=False)
-    assert load_sns_message_group_id() == "cloudcron"
+    assert load_sns_message_group_id() == "lambdacron"
 
 
 def test_load_sns_message_group_id_override(monkeypatch):
@@ -62,7 +62,7 @@ def test_dispatch_sns_messages_publishes(caplog):
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "success"}
         },
-        MessageGroupId="cloudcron",
+        MessageGroupId="lambdacron",
     )
     sns_client.publish.assert_any_call(
         TopicArn="arn:one",
@@ -71,7 +71,7 @@ def test_dispatch_sns_messages_publishes(caplog):
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "failure"}
         },
-        MessageGroupId="cloudcron",
+        MessageGroupId="lambdacron",
     )
 
 
@@ -100,7 +100,7 @@ def test_cron_lambda_task_invokes_dispatch(caplog):
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "success"}
         },
-        MessageGroupId="cloudcron",
+        MessageGroupId="lambdacron",
     )
 
 

@@ -1,4 +1,4 @@
-from cloud_cron.lambda_task import CronLambdaTask
+from lambdacron.lambda_task import CronLambdaTask
 
 
 class ExampleTask(CronLambdaTask):

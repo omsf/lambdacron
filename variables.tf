@@ -16,7 +16,7 @@ variable "schedule_expression" {
 variable "topic_name" {
   description = "Name of the shared SNS topic for scheduled results."
   type        = string
-  default     = "cloud-cron-results.fifo"
+  default     = "lambdacron-results.fifo"
 }
 
 variable "fifo_topic" {

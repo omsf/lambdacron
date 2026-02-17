@@ -1,10 +1,10 @@
 locals {
-  tags = merge({ managed_by = "cloudcron" }, var.tags)
+  tags = merge({ managed_by = "lambdacron" }, var.tags)
   environment_variables = merge(
     { SNS_TOPIC_ARN = var.sns_topic_arn },
     var.lambda_env,
   )
-  lambda_name = coalesce(var.lambda_name, "cloudcron-scheduled-${terraform.workspace}")
+  lambda_name = coalesce(var.lambda_name, "lambdacron-scheduled-${terraform.workspace}")
 }
 
 data "aws_caller_identity" "current" {}

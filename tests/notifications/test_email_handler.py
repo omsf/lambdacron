@@ -2,8 +2,8 @@ import json
 
 from botocore.exceptions import ClientError
 
-from cloud_cron.notifications.base import EnvVarTemplateProvider
-from cloud_cron.notifications.email_handler import EmailNotificationHandler
+from lambdacron.notifications.base import EnvVarTemplateProvider
+from lambdacron.notifications.email_handler import EmailNotificationHandler
 
 
 class FakeSesClient:

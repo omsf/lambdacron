@@ -1,6 +1,6 @@
 import json
-from cloud_cron.notifications.base import EnvVarTemplateProvider
-from cloud_cron.notifications.print_handler import PrintNotificationHandler
+from lambdacron.notifications.base import EnvVarTemplateProvider
+from lambdacron.notifications.print_handler import PrintNotificationHandler
 
 
 def test_print_handler_prints_rendered_template(monkeypatch, capsys):

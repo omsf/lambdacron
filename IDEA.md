@@ -1,4 +1,4 @@
-# Cloud Cron
+# LambdaCron
 
 The idea here is to create tooling to run scheduled tasks in a cloud environment, similar to cron jobs on Unix systems.
 
@@ -10,7 +10,7 @@ This is intended to be a framework that can be used by client code to define the
 2. **SNS Topic**: A single topic is manually created by the client code; its ARN is needed to give the lambda permissions to publish. Filtering is done via subscription filter policies, not separate topics.
 3. **Notification Channels**: We will provide modules for different notification channels (e.g., email via SES, SMS via Twilio, etc.). Each notification module owns the SNS->SQS->Lambda wiring: it provisions the FIFO SQS queue/subscription used for deduplication and triggers its handler, with an SNS filter policy on the result type(s); the user should not create that queue manually. Each channel ships its own container image (build or republish) that renders a Jinja2 templates and delivers via its notifier. For email, the handler renders subject, text, and HTML templates in Lambda using payload-provided template variables (no per-message overrides).
 4. **Lambda Image Utilities**: In addition to republishing an existing Lambda container, we will provide a module to build an image from a local directory containing a Dockerfile and publish it to ECR for use by the scheduled-lambda module.
-5. **Python Runtime Library**: Provide reusable Python code in `src/cloud_cron/` that makes authoring custom scheduled lambdas easy (task base class, SNS dispatch helpers, and ergonomic handler wiring). This includes a template provider abstraction so notification handlers can source templates from env vars, URLs, or S3.
+5. **Python Runtime Library**: Provide reusable Python code in `src/lambdacron/` that makes authoring custom scheduled lambdas easy (task base class, SNS dispatch helpers, and ergonomic handler wiring). This includes a template provider abstraction so notification handlers can source templates from env vars, URLs, or S3.
 
 
 The goal is that the user will need to:
@@ -20,7 +20,7 @@ The goal is that the user will need to:
 
 ```hcl
 resource "aws_sns_topic" "results" {
-  name = "cloud-cron-results"
+  name = "lambdacron-results"
 }
 
 module "my_scheduled_lambda" {

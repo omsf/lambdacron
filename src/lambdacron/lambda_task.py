@@ -155,7 +155,7 @@ def load_sns_message_group_id(env_var: str = "SNS_MESSAGE_GROUP_ID") -> str:
     str
         Message group ID for FIFO SNS topics.
     """
-    return os.environ.get(env_var, "cloudcron")
+    return os.environ.get(env_var, "lambdacron")
 
 
 def dispatch_sns_messages(

@@ -8,13 +8,13 @@ provider "aws" {
 }
 
 locals {
-  tags = merge({ managed_by = "cloudcron" }, var.tags)
+  tags = merge({ managed_by = "lambdacron" }, var.tags)
 
   build_context   = abspath("${path.module}/..")
   dockerfile_path = "${path.module}/Dockerfile"
   build_context_paths = [
     abspath(path.module),
-    abspath("${path.module}/../src/cloud_cron"),
+    abspath("${path.module}/../src/lambdacron"),
   ]
 }
 
@@ -37,7 +37,7 @@ module "notification_image" {
     "notification-container/Dockerfile",
     "notification-container/lambda.py",
     "notification-container/requirements.txt",
-    "src/cloud_cron/**/*.py",
+    "src/lambdacron/**/*.py",
   ]
 
   tags = local.tags

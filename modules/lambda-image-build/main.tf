@@ -3,7 +3,7 @@ locals {
     var.repository_name,
     "${basename(abspath(var.source_dir))}-source",
   )
-  tags                = merge({ managed_by = "cloudcron" }, var.tags)
+  tags                = merge({ managed_by = "lambdacron" }, var.tags)
   dockerfile_arg      = var.dockerfile_path == null ? "" : "-f ${var.dockerfile_path} "
   build_context_paths = var.build_context_paths == null ? [var.source_dir] : var.build_context_paths
   build_context_hash = sha1(join("", [

@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from cloud_cron.notifications.base import (
+from lambdacron.notifications.base import (
     EnvVarTemplateProvider,
     RenderedTemplateNotificationHandler,
 )

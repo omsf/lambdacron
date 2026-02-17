@@ -449,19 +449,6 @@ packages:
   requires_dist:
   - colorama ; sys_platform == 'win32'
   requires_python: '>=3.10'
-- pypi: ./
-  name: cloud-cron
-  version: 0.1.0
-  sha256: 9eb4bddc51d70505cf0ebd2dafd868ef40e2a94c29d7fa61d8341e7c891787d8
-  requires_dist:
-  - boto3
-  - jinja2
-  - pytest ; extra == 'dev'
-  - pytest-cov ; extra == 'dev'
-  - moto ; extra == 'dev'
-  - pre-commit ; extra == 'dev'
-  - mkdocs ; extra == 'dev'
-  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/6b/8e/764c6e116f4221dc7aa26c4061181ff92edb9c799adae6433d18eeba7a14/coverage-7.13.1-cp314-cp314-macosx_11_0_arm64.whl
   name: coverage
   version: 7.13.1
@@ -629,6 +616,19 @@ packages:
   version: 1.0.1
   sha256: 02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980
   requires_python: '>=3.7'
+- pypi: ./
+  name: lambdacron
+  version: 0.1.0
+  sha256: f2e6ee1c6fb3ed0eed721f59bc438b595e64a1ea386628dd0b0c869d042ea487
+  requires_dist:
+  - boto3
+  - jinja2
+  - pytest ; extra == 'dev'
+  - pytest-cov ; extra == 'dev'
+  - moto ; extra == 'dev'
+  - pre-commit ; extra == 'dev'
+  - mkdocs ; extra == 'dev'
+  requires_python: '>=3.12'
 - conda: https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.45-default_hbd61a6d_105.conda
   sha256: 1027bd8aa0d5144e954e426ab6218fd5c14e54a98f571985675468b339c808ca
   md5: 3ec0aa5037d39b06554109a01e6fb0c6

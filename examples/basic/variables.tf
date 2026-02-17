@@ -25,7 +25,7 @@ variable "platform" {
 variable "notification_image_repository_url" {
   description = "Repository URL hosting the notification-container image to republish."
   type        = string
-  default     = "public.ecr.aws/i9p4w7k9/cloud-cron-notifications"
+  default     = "public.ecr.aws/i9p4w7k9/lambdacron-notifications"
 }
 
 variable "notification_image_tag" {
@@ -85,7 +85,7 @@ variable "schedule_expression" {
 variable "lambda_name" {
   description = "Name for the scheduled Lambda function."
   type        = string
-  default     = "cloudcron-basic"
+  default     = "lambdacron-basic"
 }
 
 variable "create_test_url" {

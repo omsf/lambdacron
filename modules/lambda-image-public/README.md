@@ -8,19 +8,19 @@ This module creates a public ECR repository and builds/pushes a container image 
 module "notification_image" {
   source = "../modules/lambda-image-public"
 
-  repository_name = "cloud-cron-notifications"
+  repository_name = "lambdacron-notifications"
   image_tag       = "latest"
 
-  short_description = "Cloud Cron notification handlers (email + print)"
+  short_description = "LambdaCron notification handlers (email + print)"
   about_text        = "Shared Lambda container image with built-in email and print notification handlers."
-  usage_text        = "Use handler entrypoints lambda.email_handler or lambda.print_handler with the Cloud Cron notification modules."
+  usage_text        = "Use handler entrypoints lambda.email_handler or lambda.print_handler with the LambdaCron notification modules."
 
   build_context   = abspath("${path.module}/..")
   dockerfile_path = "${path.module}/Dockerfile"
 
   build_context_paths = [
     abspath(path.module),
-    abspath("${path.module}/../src/cloud_cron"),
+    abspath("${path.module}/../src/lambdacron"),
   ]
 
   providers = {

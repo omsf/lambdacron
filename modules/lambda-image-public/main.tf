@@ -1,5 +1,5 @@
 locals {
-  tags                = merge({ managed_by = "cloudcron" }, var.tags)
+  tags                = merge({ managed_by = "lambdacron" }, var.tags)
   build_context_paths = var.build_context_paths == null ? [var.build_context] : var.build_context_paths
   build_context_hash = sha1(join("", [
     for file_path in flatten([

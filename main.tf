@@ -1,5 +1,5 @@
 locals {
-  tags = merge({ managed_by = "cloudcron" }, var.tags)
+  tags = merge({ managed_by = "lambdacron" }, var.tags)
 }
 
 resource "aws_sns_topic" "results" {
