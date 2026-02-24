@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Mapping, Optional
 
 from jinja2 import Environment, StrictUndefined
@@ -56,6 +57,31 @@ class EnvVarTemplateProvider(TemplateProvider):
         if not template:
             raise ValueError(f"{self.env_var} must be set to a non-empty template")
         return template
+
+
+class FileTemplateProvider(TemplateProvider):
+    """
+    Load a notification template from a file on disk.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        Path to a file containing the template string.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def get_template(self) -> str:
+        """
+        Return a Jinja2 template string from the configured file path.
+
+        Returns
+        -------
+        str
+            Template contents as a string.
+        """
+        return self.path.read_text(encoding="utf-8")
 
 
 class RenderedTemplateNotificationHandler(ABC):
