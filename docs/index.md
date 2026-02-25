@@ -7,14 +7,16 @@ At a high level, it helps teams package a task as a Lambda container image, sche
 
 The project is built around "infrastructure apps": reusable IaC packages that solve a specific operational need and can be deployed into any AWS account. LambdaCron aims to make it easy to create and share an ecosystem of these apps.
 
-- Start building with [Tutorials](tutorials/quickstart.md)
-- Solve specific tasks with [How-to guides](how-to/build-lambda-image.md)
-- Check module contracts in [Reference](reference/terraform-modules.md)
-- Understand design tradeoffs in [Explanation](explanation/architecture.md)
+<!-- TODO: links -->
+- Start building with Tutorials
+- Solve specific tasks with How-to guides
+- Check module contracts in Reference
+- Understand design tradeoffs in Explanation
 
+<!-- TODO
 ## Quickstart
 Follow the [Quickstart](tutorials/quickstart.md) to deploy a scheduled Lambda and a notification path end to end.
-
+-->
 ## What You Can Build
 - Scheduled Lambda-based jobs that publish typed results to a shared SNS topic.
 - Optional notification channels (print, email, SMS) that subscribe by `result_type`.
