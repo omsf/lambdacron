@@ -5,6 +5,7 @@ import pytest
 
 from lambdacron.notifications.base import (
     EnvVarTemplateProvider,
+    FileTemplateProvider,
     RenderedTemplateNotificationHandler,
 )
 
@@ -48,6 +49,22 @@ def test_env_var_template_provider_requires_value(monkeypatch):
     monkeypatch.delenv("TEMPLATE", raising=False)
     provider = EnvVarTemplateProvider()
     with pytest.raises(ValueError, match="TEMPLATE must be set"):
+        provider.get_template()
+
+
+def test_file_template_provider_reads_template(tmp_path):
+    template_path = tmp_path / "template.jinja2"
+    template_path.write_text("Hello {{ name }}", encoding="utf-8")
+
+    provider = FileTemplateProvider(template_path)
+
+    assert provider.get_template() == "Hello {{ name }}"
+
+
+def test_file_template_provider_raises_for_missing_file(tmp_path):
+    provider = FileTemplateProvider(tmp_path / "missing.jinja2")
+
+    with pytest.raises(FileNotFoundError):
         provider.get_template()
 
 

@@ -12,3 +12,8 @@ crash.log
 .vscode/
 __pycache__/
 .coverage
+
+# Python packaging artifacts
+*.egg
+*.egg-info/
+.eggs/
