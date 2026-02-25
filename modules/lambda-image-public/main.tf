@@ -49,6 +49,9 @@ resource "null_resource" "build_and_push" {
     interpreter = ["/bin/sh", "-c"]
     command     = <<-EOC
       set -euo pipefail
+      # Use an ephemeral Docker config to avoid host keychain credential helper conflicts.
+      export DOCKER_CONFIG="$(mktemp -d)"
+      trap 'rm -rf "$DOCKER_CONFIG"' EXIT
       aws ecr-public get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin public.ecr.aws
       docker buildx build --platform ${var.platform} -f ${var.dockerfile_path} -t ${aws_ecrpublic_repository.image.repository_uri}:${var.image_tag} ${var.build_context}
       docker push ${aws_ecrpublic_repository.image.repository_uri}:${var.image_tag}
