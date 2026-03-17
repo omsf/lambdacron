@@ -67,10 +67,16 @@ variable "create_test_url" {
   default     = false
 }
 
-variable "scheduled_lambda_additional_policy_arns" {
-  description = "Additional IAM managed policy ARNs to attach to the scheduled Lambda execution role."
-  type        = list(string)
-  default     = []
+variable "scheduled_lambda_additional_managed_policy_arns" {
+  description = "Additional IAM managed policy ARNs to attach to the scheduled Lambda execution role, keyed by stable labels."
+  type        = map(string)
+  default     = {}
+}
+
+variable "scheduled_lambda_additional_inline_policies" {
+  description = "Additional inline IAM policy JSON documents to attach to the scheduled Lambda execution role, keyed by stable labels."
+  type        = map(string)
+  default     = {}
 }
 
 variable "tags" {

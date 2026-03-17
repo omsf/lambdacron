@@ -24,6 +24,14 @@ resource "aws_iam_policy" "terminate_instance" {
   })
 }
 
+data "aws_iam_policy_document" "describe_instances" {
+  statement {
+    effect    = "Allow"
+    actions   = ["ec2:DescribeInstances"]
+    resources = ["*"]
+  }
+}
+
 module "scheduled_lambda" {
   source = "./modules/scheduled-lambda"
 
@@ -35,11 +43,17 @@ module "scheduled_lambda" {
     LOG_LEVEL = "info"
   }
 
-  additional_policy_arns = [
-    aws_iam_policy.terminate_instance.arn,
-  ]
+  additional_managed_policy_arns = {
+    terminate_instance = aws_iam_policy.terminate_instance.arn
+  }
+
+  additional_inline_policies = {
+    describe_instances = data.aws_iam_policy_document.describe_instances.json
+  }
 }
 ```
+
+The module's built-in CloudWatch Logs and SNS publish permissions are attached as an inline role policy, leaving the role's managed-policy attachment quota available for the caller's `additional_managed_policy_arns`. AWS still enforces the aggregate inline policy size limit for `additional_inline_policies`.
 
 ## Inputs
 
@@ -53,7 +67,8 @@ module "scheduled_lambda" {
 - `image_command` (list(string)): Optional override for the container CMD/handler.
 - `tags` (map(string)): Tags to apply to created resources.
 - `create_test_url` (bool): Create a public Lambda Function URL for temporary testing only (not for production). This URL has no auth and is publicly accessible, so it can be abused.
-- `additional_policy_arns` (list(string)): Additional IAM managed policy ARNs to attach to the Lambda execution role.
+- `additional_managed_policy_arns` (map(string)): Additional IAM managed policy ARNs to attach to the Lambda execution role, keyed by stable labels. Supports up to 10 entries.
+- `additional_inline_policies` (map(string)): Additional inline IAM policy JSON documents to attach to the Lambda execution role, keyed by stable labels. AWS enforces the aggregate inline-policy size limit.
 
 ## Outputs
 

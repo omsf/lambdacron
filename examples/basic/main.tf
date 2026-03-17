@@ -54,12 +54,13 @@ locals {
 module "lambdacron" {
   source = "../.."
 
-  aws_region                              = var.aws_region
-  lambda_image_uri                        = local.active_lambda_image_uri
-  schedule_expression                     = var.schedule_expression
-  lambda_name                             = var.lambda_name
-  create_test_url                         = var.create_test_url
-  scheduled_lambda_additional_policy_arns = var.scheduled_lambda_additional_policy_arns
+  aws_region                                      = var.aws_region
+  lambda_image_uri                                = local.active_lambda_image_uri
+  schedule_expression                             = var.schedule_expression
+  lambda_name                                     = var.lambda_name
+  create_test_url                                 = var.create_test_url
+  scheduled_lambda_additional_managed_policy_arns = var.scheduled_lambda_additional_managed_policy_arns
+  scheduled_lambda_additional_inline_policies     = var.scheduled_lambda_additional_inline_policies
 
   tags = local.common_tags
 }

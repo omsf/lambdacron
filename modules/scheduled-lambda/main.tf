@@ -43,22 +43,25 @@ resource "aws_iam_role" "lambda_role" {
   tags               = local.tags
 }
 
-resource "aws_iam_policy" "lambda_policy" {
+resource "aws_iam_role_policy" "lambda_permissions" {
   name   = "${local.lambda_name}-permissions"
+  role   = aws_iam_role.lambda_role.name
   policy = data.aws_iam_policy_document.lambda_permissions.json
-  tags   = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "additional_managed_policy_attachment" {
+  for_each = var.additional_managed_policy_arns
+
   role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.lambda_policy.arn
+  policy_arn = each.value
 }
 
-resource "aws_iam_role_policy_attachment" "additional_policy_attachment" {
-  count = length(var.additional_policy_arns)
+resource "aws_iam_role_policy" "additional_inline_policy" {
+  for_each = var.additional_inline_policies
 
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = var.additional_policy_arns[count.index]
+  name   = each.key
+  role   = aws_iam_role.lambda_role.name
+  policy = each.value
 }
 
 resource "aws_lambda_function" "scheduled" {
