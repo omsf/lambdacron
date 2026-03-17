@@ -94,6 +94,9 @@ resource "null_resource" "republish_image" {
     interpreter = ["/bin/sh", "-c"]
     command     = <<-EOC
       set -euo pipefail
+      # Use an ephemeral Docker config to avoid host keychain credential helper conflicts.
+      export DOCKER_CONFIG="$(mktemp -d)"
+      trap 'rm -rf "$DOCKER_CONFIG"' EXIT
       aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
       aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com
       docker pull ${local.source_image_uri}
