@@ -25,12 +25,13 @@ module "scheduled_lambda" {
   schedule_expression = var.schedule_expression
   sns_topic_arn       = aws_sns_topic.results.arn
 
-  lambda_env      = var.lambda_env
-  timeout         = var.timeout
-  memory_size     = var.memory_size
-  lambda_name     = var.lambda_name
-  image_command   = var.image_command
-  create_test_url = var.create_test_url
+  lambda_env             = var.lambda_env
+  timeout                = var.timeout
+  memory_size            = var.memory_size
+  lambda_name            = var.lambda_name
+  image_command          = var.image_command
+  create_test_url        = var.create_test_url
+  additional_policy_arns = var.scheduled_lambda_additional_policy_arns
 
   tags = local.tags
 }

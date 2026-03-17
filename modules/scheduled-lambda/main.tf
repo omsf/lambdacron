@@ -54,6 +54,13 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "additional_policy_attachment" {
+  count = length(var.additional_policy_arns)
+
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = var.additional_policy_arns[count.index]
+}
+
 resource "aws_lambda_function" "scheduled" {
   function_name = local.lambda_name
   role          = aws_iam_role.lambda_role.arn

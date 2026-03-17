@@ -54,3 +54,9 @@ variable "create_test_url" {
   type        = bool
   default     = false
 }
+
+variable "additional_policy_arns" {
+  description = "Additional IAM managed policy ARNs to attach to the Lambda execution role."
+  type        = list(string)
+  default     = []
+}
