@@ -59,7 +59,7 @@ resource "aws_iam_role_policy_attachment" "additional_managed_policy_attachment"
 resource "aws_iam_role_policy" "additional_inline_policy" {
   for_each = var.additional_inline_policies
 
-  name   = each.key
+  name   = "${local.lambda_name}-extra-${each.key}"
   role   = aws_iam_role.lambda_role.name
   policy = each.value
 }
