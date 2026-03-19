@@ -54,3 +54,57 @@ variable "create_test_url" {
   type        = bool
   default     = false
 }
+
+# We need the stable keys for the additional policy ARNs because with a list
+# of ARNs, we either have problems with foreach on objects that are created
+# in the same plan, or we have problems with count/index which makes
+# resources index (order) dependent. So arbitrary stable labels are a better
+# solution.
+variable "additional_managed_policy_arns" {
+  description = "Additional IAM managed policy ARNs to attach to the Lambda execution role, keyed by stable labels."
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition     = length(var.additional_managed_policy_arns) <= 10
+    error_message = "additional_managed_policy_arns may contain at most 10 managed policy ARNs."
+  }
+
+  validation {
+    condition = alltrue([
+      for label in keys(var.additional_managed_policy_arns) :
+      can(regex("^[A-Za-z0-9_-]+$", label))
+    ])
+    error_message = "additional_managed_policy_arns keys must match ^[A-Za-z0-9_-]+$."
+  }
+
+  validation {
+    condition = alltrue([
+      for policy_arn in values(var.additional_managed_policy_arns) :
+      can(regex("^arn:[^:]+:iam::(aws|[0-9]{12}):policy/[A-Za-z0-9+=,.@_/-]+$", trimspace(policy_arn)))
+    ])
+    error_message = "additional_managed_policy_arns values must be IAM managed policy ARNs."
+  }
+}
+
+variable "additional_inline_policies" {
+  description = "Additional inline IAM policy JSON documents to attach to the Lambda execution role, keyed by stable labels."
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for label in keys(var.additional_inline_policies) :
+      can(regex("^[A-Za-z0-9_-]+$", label))
+    ])
+    error_message = "additional_inline_policies keys must match ^[A-Za-z0-9_-]+$."
+  }
+
+  validation {
+    condition = alltrue([
+      for policy_json in values(var.additional_inline_policies) :
+      can(regex("\\S", policy_json)) && can(jsondecode(policy_json))
+    ])
+    error_message = "additional_inline_policies values must be non-empty JSON strings."
+  }
+}

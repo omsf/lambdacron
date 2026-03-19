@@ -18,6 +18,11 @@ output "scheduled_lambda_role_arn" {
   value       = module.scheduled_lambda.execution_role_arn
 }
 
+output "scheduled_lambda_role_name" {
+  description = "Name of the scheduled Lambda execution role."
+  value       = module.scheduled_lambda.execution_role_name
+}
+
 output "scheduled_lambda_log_group" {
   description = "CloudWatch log group name for the scheduled Lambda."
   value       = module.scheduled_lambda.log_group_name
