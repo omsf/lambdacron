@@ -21,6 +21,41 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+# TODO: apparently this ugly thing is needed because it's a public repo, and
+# I'm stuck on an old provider. Looks like 6.19 introduces what I need
+data "external" "source_image" {
+  # Inspect the current tag target so stable tags like "latest" trigger a
+  # republish when the upstream manifest digest changes.
+  program = [
+    "/bin/sh",
+    "-c",
+    <<-EOC
+      set -euo pipefail
+      image_uri="$1"
+      export DOCKER_CONFIG="$(mktemp -d)"
+      trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+      image_digest="$(
+        docker manifest inspect --verbose "$image_uri" | awk '
+          /"Descriptor"[[:space:]]*:/ { in_descriptor = 1; next }
+          in_descriptor && /}/ { in_descriptor = 0 }
+          in_descriptor && /"digest"[[:space:]]*:/ {
+            digest_line = $0
+            sub(/^[^"]*"digest"[[:space:]]*:[[:space:]]*"/, "", digest_line)
+            sub(/".*$/, "", digest_line)
+            print digest_line
+            exit
+          }
+        '
+      )"
+      [ -n "$image_digest" ]
+      printf '{"image_digest":"%s"}\n' "$image_digest"
+    EOC
+    ,
+    "source-image-digest",
+    local.source_image_uri,
+  ]
+}
+
 resource "aws_ecr_repository" "destination" {
   name                 = local.repository_name
   force_delete         = true
@@ -82,6 +117,7 @@ resource "aws_ecr_repository_policy" "self_access" {
 
 resource "null_resource" "republish_image" {
   triggers = {
+    source_image_digest         = data.external.source_image.result.image_digest
     source_repository           = local.source_repo
     source_tag                  = var.source_lambda_tag
     destination_repository      = aws_ecr_repository.destination.repository_url
