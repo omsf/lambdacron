@@ -91,7 +91,7 @@ resource "null_resource" "republish_image" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["/bin/sh", "-c"]
+    interpreter = ["/bin/bash", "-c"]
     command     = <<-EOC
       set -euo pipefail
       # Use an ephemeral Docker config to avoid host keychain credential helper conflicts.
