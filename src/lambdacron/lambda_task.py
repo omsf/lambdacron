@@ -192,7 +192,8 @@ def build_result_message_payload(*, result_type: str, message: Any) -> dict[str,
     else:
         if existing_result_type != result_type:
             raise ValueError(
-                f"Result payload for type '{result_type}' has conflicting result_type '{existing_result_type}'"
+                f"Result payload for type '{result_type}' has conflicting "
+                f"result_type '{existing_result_type}'"
             )
     return payload
 
