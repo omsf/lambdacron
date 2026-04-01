@@ -158,6 +158,46 @@ def load_sns_message_group_id(env_var: str = "SNS_MESSAGE_GROUP_ID") -> str:
     return os.environ.get(env_var, "lambdacron")
 
 
+def build_result_message_payload(*, result_type: str, message: Any) -> dict[str, Any]:
+    """
+    Build the JSON object published to SNS for a single result type.
+
+    Parameters
+    ----------
+    result_type : str
+        Result type key from the task output mapping.
+    message : Any
+        JSON-serializable payload associated with the result type.
+
+    Returns
+    -------
+    dict[str, Any]
+        Payload object with a top-level ``result_type`` field.
+
+    Raises
+    ------
+    ValueError
+        If the payload is not a JSON object or if it contains a conflicting
+        ``result_type`` value.
+    """
+    if not isinstance(message, Mapping):
+        raise ValueError(
+            f"Result payload for type '{result_type}' must be a JSON object"
+        )
+
+    payload = dict(message)
+    existing_result_type = payload.get("result_type")
+    if existing_result_type is None:
+        payload["result_type"] = result_type
+    else:
+        if existing_result_type != result_type:
+            raise ValueError(
+                f"Result payload for type '{result_type}' has conflicting "
+                f"result_type '{existing_result_type}'"
+            )
+    return payload
+
+
 def dispatch_sns_messages(
     *,
     result: Mapping[str, Any],
@@ -180,9 +220,10 @@ def dispatch_sns_messages(
         Logger used to emit structured publish logs.
     """
     for result_type, message in result.items():
+        payload = build_result_message_payload(result_type=result_type, message=message)
         sns_client.publish(
             TopicArn=sns_topic_arn,
-            Message=json.dumps(message),
+            Message=json.dumps(payload),
             Subject=f"Notification for {result_type}",
             MessageAttributes={
                 "result_type": {

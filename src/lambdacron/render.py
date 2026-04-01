@@ -6,6 +6,7 @@ from typing import Any, Mapping, TextIO
 
 from jinja2 import TemplateError
 
+from lambdacron.lambda_task import build_result_message_payload
 from lambdacron.notifications.base import (
     FileTemplateProvider,
     RenderedTemplateNotificationHandler,
@@ -46,8 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
 class RenderNotificationHandler(RenderedTemplateNotificationHandler):
     def __init__(self, *, template_path: Path, stream: TextIO | None = None) -> None:
         super().__init__(
-            template_providers={"body": FileTemplateProvider(template_path)},
-            include_result_type=True,
+            template_providers={"body": FileTemplateProvider(template_path)}
         )
         self.stream = stream or sys.stdout
 
@@ -95,11 +95,15 @@ def extract_result_payload(payload_json: str, *, result_type: str) -> str:
     if not isinstance(payload, dict):
         raise ValueError("Task output must be a JSON object keyed by result type")
     selected = payload.get(result_type)
-    if not isinstance(selected, dict):
+    if not isinstance(selected, Mapping):
         raise ValueError(
-            f"Result payload for type '{result_type}' must be a JSON object"
+            f"Result payload for type '{result_type}' must be a JSON object, "
+            f"got {type(selected).__name__}"
         )
-    return json.dumps(selected)
+    payload_for_publish = build_result_message_payload(
+        result_type=result_type, message=selected
+    )
+    return json.dumps(payload_for_publish)
 
 
 def main(argv: list[str] | None = None) -> int:

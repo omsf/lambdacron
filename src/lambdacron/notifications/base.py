@@ -94,8 +94,6 @@ class RenderedTemplateNotificationHandler(ABC):
         Providers keyed by template name for rendering.
     expected_queue_arn : str, optional
         Queue ARN to validate incoming SQS records.
-    include_result_type : bool, optional
-        Whether to include the SNS message attribute ``result_type`` in the payload.
     logger : logging.Logger, optional
         Logger used for structured logging.
     jinja_env : jinja2.Environment, optional
@@ -107,13 +105,11 @@ class RenderedTemplateNotificationHandler(ABC):
         template_providers: Mapping[str, TemplateProvider],
         *,
         expected_queue_arn: Optional[str] = None,
-        include_result_type: bool = True,
         logger: Optional[logging.Logger] = None,
         jinja_env: Optional[Environment] = None,
     ) -> None:
         self.template_providers = dict(template_providers)
         self.expected_queue_arn = expected_queue_arn
-        self.include_result_type = include_result_type
         self.logger = logger or logging.getLogger(self.__class__.__name__)
         self.jinja_env = jinja_env or Environment(undefined=StrictUndefined)
 
@@ -213,10 +209,18 @@ class RenderedTemplateNotificationHandler(ABC):
                 raise ValueError("SNS message must be valid JSON") from exc
         if not isinstance(payload, dict):
             raise ValueError("Result payload must be a JSON object")
-        if self.include_result_type:
-            result_type = self._extract_result_type(record)
-            if result_type and "result_type" not in payload:
-                payload["result_type"] = result_type
+        payload_result_type = payload.get("result_type")
+        if not isinstance(payload_result_type, str) or not payload_result_type:
+            raise ValueError(
+                "Result payload must include a non-empty string result_type"
+            )
+
+        attribute_result_type = self._extract_result_type(record)
+        if attribute_result_type and attribute_result_type != payload_result_type:
+            raise ValueError(
+                "Result type mismatch between payload and message attributes "
+                f"(payload {payload_result_type}, attribute {attribute_result_type})"
+            )
         return payload
 
     def _render_template(self, template: str, result: Mapping[str, Any]) -> str:

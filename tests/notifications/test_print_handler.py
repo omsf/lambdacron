@@ -7,7 +7,12 @@ def test_print_handler_prints_rendered_template(monkeypatch, capsys):
     monkeypatch.setenv("TEMPLATE", "Hello {{ name }}")
     handler = PrintNotificationHandler(template_provider=EnvVarTemplateProvider())
     event = {
-        "Records": [{"body": json.dumps({"name": "Ada"}), "eventSource": "aws:sqs"}]
+        "Records": [
+            {
+                "body": json.dumps({"name": "Ada", "result_type": "success"}),
+                "eventSource": "aws:sqs",
+            }
+        ]
     }
 
     handler.lambda_handler(event, context=None)

@@ -40,7 +40,7 @@ def test_email_handler_sends_rendered_templates(monkeypatch):
         recipients=["alice@example.com", "bob@example.com"],
         ses_client=ses_client,
     )
-    event = build_sqs_event({"name": "Ada"})
+    event = build_sqs_event({"name": "Ada", "result_type": "success"})
 
     handler.lambda_handler(event, context=None)
 
@@ -71,7 +71,7 @@ def test_email_handler_includes_optional_fields(monkeypatch):
         config_set="alerts",
         reply_to=["reply@example.com"],
     )
-    event = build_sqs_event({"name": "Grace"})
+    event = build_sqs_event({"name": "Grace", "result_type": "success"})
 
     handler.lambda_handler(event, context=None)
 
@@ -102,7 +102,9 @@ def test_email_handler_reports_ses_error(monkeypatch):
         recipients=["ops@example.com"],
         ses_client=ErrorSesClient(),
     )
-    event = build_sqs_event({"name": "Ada"}, message_id="msg-err")
+    event = build_sqs_event(
+        {"name": "Ada", "result_type": "success"}, message_id="msg-err"
+    )
 
     response = handler.lambda_handler(event, context=None)
 

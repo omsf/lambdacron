@@ -25,13 +25,11 @@ class PrintNotificationHandler(RenderedTemplateNotificationHandler):
         *,
         template_provider: TemplateProvider,
         expected_queue_arn: str | None = None,
-        include_result_type: bool = True,
         logger: Any | None = None,
     ) -> None:
         super().__init__(
             template_providers={"body": template_provider},
             expected_queue_arn=expected_queue_arn,
-            include_result_type=include_result_type,
             logger=logger,
         )
 

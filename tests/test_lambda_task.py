@@ -7,6 +7,7 @@ import pytest
 
 from lambdacron.lambda_task import (
     CronLambdaTask,
+    build_result_message_payload,
     dispatch_sns_messages,
     extract_context_metadata,
     load_sns_message_group_id,
@@ -57,7 +58,7 @@ def test_dispatch_sns_messages_publishes(caplog):
 
     sns_client.publish.assert_any_call(
         TopicArn="arn:one",
-        Message=json.dumps({"ok": True}),
+        Message=json.dumps({"ok": True, "result_type": "success"}),
         Subject="Notification for success",
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "success"}
@@ -66,7 +67,7 @@ def test_dispatch_sns_messages_publishes(caplog):
     )
     sns_client.publish.assert_any_call(
         TopicArn="arn:one",
-        Message=json.dumps({"ok": False}),
+        Message=json.dumps({"ok": False, "result_type": "failure"}),
         Subject="Notification for failure",
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "failure"}
@@ -95,13 +96,75 @@ def test_cron_lambda_task_invokes_dispatch(caplog):
 
     sns_client.publish.assert_called_once_with(
         TopicArn="arn:one",
-        Message=json.dumps({"ok": True}),
+        Message=json.dumps({"ok": True, "result_type": "success"}),
         Subject="Notification for success",
         MessageAttributes={
             "result_type": {"DataType": "String", "StringValue": "success"}
         },
         MessageGroupId="lambdacron",
     )
+
+
+def test_build_result_message_payload_rejects_conflicting_result_type():
+    with pytest.raises(
+        ValueError,
+        match="Result payload for type 'success' has conflicting result_type",
+    ):
+        build_result_message_payload(
+            result_type="success",
+            message={"result_type": "failure", "ok": False},
+        )
+
+
+def test_dispatch_sns_messages_publishes_distinct_bodies_for_identical_payloads():
+    sns_client = Mock()
+    logger = logging.getLogger("test_dispatch_identical")
+    result = {
+        "failure": {"status": "bad"},
+        "failure_or_warning": {"status": "bad"},
+    }
+
+    dispatch_sns_messages(
+        result=result,
+        sns_topic_arn="arn:one",
+        sns_client=sns_client,
+        logger=logger,
+    )
+
+    published_messages = [
+        json.loads(call.kwargs["Message"]) for call in sns_client.publish.call_args_list
+    ]
+
+    assert published_messages == [
+        {"status": "bad", "result_type": "failure"},
+        {"status": "bad", "result_type": "failure_or_warning"},
+    ]
+
+
+def test_dispatch_sns_messages_does_not_mutate_shared_payload():
+    sns_client = Mock()
+    logger = logging.getLogger("test_dispatch_shared")
+    shared_payload = {"status": "bad"}
+
+    dispatch_sns_messages(
+        result={
+            "failure": shared_payload,
+            "failure_or_warning": shared_payload,
+        },
+        sns_topic_arn="arn:one",
+        sns_client=sns_client,
+        logger=logger,
+    )
+
+    published_messages = [
+        json.loads(call.kwargs["Message"]) for call in sns_client.publish.call_args_list
+    ]
+
+    assert published_messages == [
+        {"status": "bad", "result_type": "failure"},
+        {"status": "bad", "result_type": "failure_or_warning"},
+    ]
+    assert shared_payload == {"status": "bad"}
 
 
 def test_cron_lambda_task_init_loads_sns_topic_arn(monkeypatch):

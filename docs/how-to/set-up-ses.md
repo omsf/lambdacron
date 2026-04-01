@@ -12,8 +12,10 @@ Set up Amazon SES once per AWS account and region where your notifier Lambda run
 
 * Choose the AWS account/region where email will be sent (SES setup is regional).
 * Choose a sender identity:
+
   * Email identity for one sender address.
   * Domain identity if you want to send from multiple addresses in one domain.
+
 * Make sure you can edit DNS records if you choose a domain identity.
 
 SES requires verified identities for senders and (in sandbox) recipients. That means you must verify the email address or domain you want to send from, and if in sandbox, also verify any recipient addresses. Sandbox mode limits how much you can send, and you'll probably want to request production access if you want to send to more than one recipient.

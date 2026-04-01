@@ -33,7 +33,7 @@ Based on `examples/basic/lambda/lambda_module.py`:
 
 * Key (`example`) is the `result_type`.
 * Value (`{"message": "Hello World"}`) is the payload rendered by templates.
-* The payload automatically has the key `result_type` injected by the notification handler, so you can access it in templates as `{{ result_type }}`.
+* LambdaCron adds `result_type` to the published message body when it sends the payload to SNS, so you can access it in templates as `{{ result_type }}`.
 
 ## 2. Create templates that use the payload fields
 
@@ -90,7 +90,8 @@ At runtime:
 
 Important detail:
 
-* `result_type` is injected into the render payload by the notification handler when available in message attributes.
+* `result_type` is injected into the message body by the publisher before it reaches the notifier.
+* The SNS message attribute still carries the same `result_type`. It is used for filter policies and validation.
 * That is why templates like `{{ result_type }}` work even when your `_perform_task` payload does not explicitly include a `result_type` field.
 
 ## 4. Checklist Before Deploying

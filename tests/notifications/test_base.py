@@ -71,13 +71,13 @@ def test_file_template_provider_raises_for_missing_file(tmp_path):
 def test_notification_handler_parses_sqs_json_body(monkeypatch):
     monkeypatch.setenv("TEMPLATE", "Status {{ status }}")
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
-    event = build_sqs_event(json.dumps({"status": "ok"}))
+    event = build_sqs_event(json.dumps({"status": "ok", "result_type": "success"}))
 
     response = handler.lambda_handler(event, context=None)
 
     assert handler.calls == [
         {
-            "result": {"status": "ok"},
+            "result": {"status": "ok", "result_type": "success"},
             "rendered": {"body": "Status ok"},
             "record": event["Records"][0],
         }
@@ -88,7 +88,9 @@ def test_notification_handler_parses_sqs_json_body(monkeypatch):
 def test_notification_handler_parses_sns_envelope(monkeypatch):
     monkeypatch.setenv("TEMPLATE", "Result {{ status }}")
     handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
-    sns_body = json.dumps({"Message": json.dumps({"status": "good"})})
+    sns_body = json.dumps(
+        {"Message": json.dumps({"status": "good", "result_type": "success"})}
+    )
     event = build_sqs_event(sns_body)
 
     response = handler.lambda_handler(event, context=None)
@@ -141,8 +143,14 @@ def test_notification_handler_logs_invocation(monkeypatch, caplog):
     )
     event = {
         "Records": [
-            {"body": json.dumps({"name": "Ada"}), "eventSource": "aws:sqs"},
-            {"body": json.dumps({"name": "Grace"}), "eventSource": "aws:sqs"},
+            {
+                "body": json.dumps({"name": "Ada", "result_type": "success"}),
+                "eventSource": "aws:sqs",
+            },
+            {
+                "body": json.dumps({"name": "Grace", "result_type": "success"}),
+                "eventSource": "aws:sqs",
+            },
         ]
     }
 
@@ -204,30 +212,41 @@ def test_parse_result_rejects_non_object_payload(monkeypatch):
     assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
 
 
-@pytest.mark.parametrize("include_result_type", [True, False])
-@pytest.mark.parametrize("payload_has_result_type", [True, False])
-def test_notification_handler_result_type_injection(
-    monkeypatch, include_result_type, payload_has_result_type
-):
-    monkeypatch.setenv("TEMPLATE", "Result {{ result_type | default('none') }}")
-    handler = CapturingHandler(
-        template_providers={"body": EnvVarTemplateProvider()},
-        include_result_type=include_result_type,
-    )
-    payload = {"status": "ok"}
-    if payload_has_result_type:
-        payload["result_type"] = "payload"
+def test_notification_handler_payload_result_type_passes_through(monkeypatch):
+    monkeypatch.setenv("TEMPLATE", "Result {{ result_type }}")
+    handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
+    payload = {"status": "ok", "result_type": "payload"}
     event = build_sqs_event(
         json.dumps(payload),
-        message_attributes={"result_type": {"stringValue": "attribute"}},
+        message_attributes={"result_type": {"stringValue": "payload"}},
     )
 
     handler.lambda_handler(event, context=None)
 
-    result = handler.calls[0]["result"]
-    if payload_has_result_type:
-        assert result["result_type"] == "payload"
-    elif include_result_type:
-        assert result["result_type"] == "attribute"
-    else:
-        assert "result_type" not in result
+    assert handler.calls[0]["result"] == payload
+
+
+def test_notification_handler_requires_payload_result_type(monkeypatch):
+    monkeypatch.setenv("TEMPLATE", "Result {{ result_type | default('none') }}")
+    handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
+    event = build_sqs_event(
+        json.dumps({"status": "ok"}),
+        message_attributes={"result_type": {"stringValue": "attribute"}},
+    )
+
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}
+
+
+def test_notification_handler_rejects_result_type_mismatch(monkeypatch):
+    monkeypatch.setenv("TEMPLATE", "Result {{ result_type }}")
+    handler = CapturingHandler(template_providers={"body": EnvVarTemplateProvider()})
+    event = build_sqs_event(
+        json.dumps({"status": "ok", "result_type": "payload"}),
+        message_attributes={"result_type": {"stringValue": "attribute"}},
+    )
+
+    response = handler.lambda_handler(event, context=None)
+
+    assert response == {"batchItemFailures": [{"itemIdentifier": "msg-123"}]}

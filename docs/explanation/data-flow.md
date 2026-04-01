@@ -26,14 +26,14 @@ Let's say the lambda runs a few tasks, which either pass (status `OK`) or fail (
 
 ## Phase 2: What Gets Published to SNS
 
-We publish one SNS message per status type, so in this case two messages: one for `OK` and one for `ERROR`. Each message includes the relevant portion of the `_perform_task` return value (JSON-encoded) as the `Message` payload. The `result_type` is included as a `MessageAttribute` to allow for filtering by the SQS subscriptions.
+We publish one SNS message per status type, so in this case two messages: one for `OK` and one for `ERROR`. Each message includes the relevant portion of the `_perform_task` return value, with a top-level `result_type` added before publication. The same `result_type` is also included as a `MessageAttribute` to allow for filtering by the SQS subscriptions.
 
 For `OK`, the publish call payload shape is:
 
 ```json
 {
   "TopicArn": "arn:aws:sns:us-east-1:123456789012:lambdacron-results.fifo",
-  "Message": "{\"tasks\": [{\"taskid\": 1, \"name\": \"Foo\"}, {\"taskid\": 2, \"name\": \"Bar\"}]}",
+  "Message": "{\"tasks\": [{\"taskid\": 1, \"name\": \"Foo\"}, {\"taskid\": 2, \"name\": \"Bar\"}], \"result_type\": \"OK\"}",
   "Subject": "Notification for OK",
   "MessageAttributes": {
     "result_type": {
@@ -47,7 +47,7 @@ For `OK`, the publish call payload shape is:
 
 For `ERROR`, the shape is identical except:
 
-- `Message` is `"{\"tasks\": [{\"taskid\": 3, \"name\": \"Baz\"}]}"`
+- `Message` is `"{\"tasks\": [{\"taskid\": 3, \"name\": \"Baz\"}], \"result_type\": \"ERROR\"}"`
 - `Subject` is `"Notification for ERROR"`
 - `MessageAttributes.result_type.StringValue` is `"ERROR"`
 
@@ -63,7 +63,7 @@ The SQS event record (as seen by notifier Lambda) looks like:
     {
       "messageId": "msg-ok-1",
       "eventSource": "aws:sqs",
-      "body": "{\"tasks\": [{\"taskid\": 1, \"name\": \"Foo\"}, {\"taskid\": 2, \"name\": \"Bar\"}]}",
+      "body": "{\"tasks\": [{\"taskid\": 1, \"name\": \"Foo\"}, {\"taskid\": 2, \"name\": \"Bar\"}], \"result_type\": \"OK\"}",
       "messageAttributes": {
         "result_type": {
           "stringValue": "OK",
@@ -77,8 +77,7 @@ The SQS event record (as seen by notifier Lambda) looks like:
 
 ## Phase 4: Notifier Parse Behavior with This Shape
 
-The notifier parser converts the JSON string back into an object, and, if `result_type` is missing from the payload, injects it from the SQS `messageAttributes`. In this case, the payload doesn't include `result_type`, so it is injected.
-
+The notifier parser converts the JSON string back into an object and validates that the payload `result_type` matches the SQS `messageAttributes.result_type` value when that attribute is present.
 The result, which is fed to the notifier's templates, is:
 
 ```json
