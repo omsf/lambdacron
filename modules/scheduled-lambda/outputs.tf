@@ -8,6 +8,11 @@ output "execution_role_arn" {
   value       = aws_iam_role.lambda_role.arn
 }
 
+output "execution_role_name" {
+  description = "Name of the Lambda execution role."
+  value       = aws_iam_role.lambda_role.name
+}
+
 output "log_group_name" {
   description = "CloudWatch log group name for the Lambda function."
   value       = "/aws/lambda/${aws_lambda_function.scheduled.function_name}"
