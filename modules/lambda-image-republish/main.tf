@@ -21,6 +21,12 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+# Remove this once the AWS provider is >= 6.19 and can read public ECR image
+# metadata directly.
+data "docker_registry_image" "source_image" {
+  name = local.source_image_uri
+}
+
 resource "aws_ecr_repository" "destination" {
   name                 = local.repository_name
   force_delete         = true
@@ -82,6 +88,7 @@ resource "aws_ecr_repository_policy" "self_access" {
 
 resource "null_resource" "republish_image" {
   triggers = {
+    source_image_digest         = data.docker_registry_image.source_image.sha256_digest
     source_repository           = local.source_repo
     source_tag                  = var.source_lambda_tag
     destination_repository      = aws_ecr_repository.destination.repository_url
