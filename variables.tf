@@ -3,11 +3,6 @@ variable "lambda_image_uri" {
   type        = string
 }
 
-variable "aws_region" {
-  description = "AWS region to deploy resources."
-  type        = string
-}
-
 variable "schedule_expression" {
   description = "EventBridge schedule expression (e.g., rate(5 minutes) or cron(0 12 * * ? *))."
   type        = string

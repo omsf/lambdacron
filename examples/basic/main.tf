@@ -54,7 +54,6 @@ locals {
 module "lambdacron" {
   source = "../.."
 
-  aws_region                                      = var.aws_region
   lambda_image_uri                                = local.active_lambda_image_uri
   schedule_expression                             = var.schedule_expression
   lambda_name                                     = var.lambda_name
