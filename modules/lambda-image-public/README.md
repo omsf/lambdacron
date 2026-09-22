@@ -54,4 +54,6 @@ module "notification_image" {
 ## Notes
 
 - Requires Docker with `buildx` and `aws` CLI credentials capable of creating public ECR repositories.
+- Honors an explicit `DOCKER_CONTEXT` before `DOCKER_HOST`; otherwise it preserves a nonempty `DOCKER_HOST` or captures the selected Docker context's endpoint. `DOCKER_CONTEXT` is cleared only within the provisioner after its endpoint is captured. The caller must start the daemon and select a valid context.
+- Context-managed TLS certificates/settings are not copied. For remote TLS, supply `DOCKER_HOST`, `DOCKER_TLS_VERIFY`, and an explicit `DOCKER_CERT_PATH` instead.
 - Public ECR repositories can only be created in `us-east-1`; pass a provider configured for `us-east-1` via `providers`.

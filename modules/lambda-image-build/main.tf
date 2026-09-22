@@ -109,9 +109,20 @@ resource "null_resource" "build_and_push" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<-EOC
       set -euo pipefail
-      # Use an ephemeral Docker config to avoid host keychain credential helper conflicts.
-      export DOCKER_CONFIG="$(mktemp -d)"
+      # Isolate registry credentials from the host keychain in a temporary Docker config.
+      # Preserve the selected daemon endpoint before hiding contexts, and seed auths
+      # to prevent Docker from auto-detecting a host credential helper.
+      if [[ -n "$${DOCKER_CONTEXT:-}" ]]; then
+        DOCKER_HOST="$(docker context inspect "$DOCKER_CONTEXT" --format '{{.Endpoints.docker.Host}}')"
+      elif [[ -z "$${DOCKER_HOST:-}" ]]; then
+        DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
+      fi
+      export DOCKER_HOST
+      unset DOCKER_CONTEXT
+      DOCKER_CONFIG="$(mktemp -d)"
+      export DOCKER_CONFIG
       trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+      printf '%s\n' '{"auths":{"${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com":{}}}' > "$DOCKER_CONFIG/config.json"
       aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com
       docker buildx build --platform ${var.platform} ${local.dockerfile_arg}-t ${aws_ecr_repository.lambda_image.repository_url}:${var.image_tag} ${var.source_dir}
       docker push ${aws_ecr_repository.lambda_image.repository_url}:${var.image_tag}
